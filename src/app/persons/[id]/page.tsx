@@ -14,6 +14,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Tag } from '@/lib/hooks/use-tags'
 import ActionLogForm from '@/components/ActionLogForm'
 import ActionsList from '@/components/ActionsList'
+import ActionStatusBanner from '@/components/ActionStatusBanner'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   organization_name: string
@@ -161,6 +162,8 @@ function PersonDetailContent() {
                 Person details and information
               </p>
             </div>
+
+            <ActionStatusBanner personId={id} refreshTrigger={actionRefreshTrigger} />
 
             <div className="space-y-6 max-w-4xl">
               <div className="rounded-lg border bg-card p-6 shadow-sm space-y-6">
