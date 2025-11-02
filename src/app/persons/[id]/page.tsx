@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { AuthGuard } from '@/components/auth-guard'
-import { Sidebar } from '@/components/sidebar'
-import { UserMenu } from '@/components/user-menu'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SiteHeader } from '@/components/site-header'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { Person } from '@/types/person'
@@ -55,60 +56,58 @@ function PersonDetailContent() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <header className="border-b bg-background p-4 flex justify-end">
-            <UserMenu />
-          </header>
-          <main className="p-6">
-            <p className="text-muted-foreground">Loading...</p>
-          </main>
-        </div>
-      </div>
+      <SidebarProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     )
   }
 
   if (error || !person) {
     return (
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <header className="border-b bg-background p-4 flex justify-between items-center">
-            <Link href="/persons">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-            </Link>
-            <UserMenu />
-          </header>
-          <main className="p-6">
-            <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-              {error || 'Person not found'}
+      <SidebarProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+              <Link href="/persons">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Persons
+                </Button>
+              </Link>
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                {error || 'Person not found'}
+              </div>
             </div>
-          </main>
-        </div>
-      </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     )
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1">
-        <header className="border-b bg-background p-4 flex justify-between items-center">
-          <Link href="/persons">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-          </Link>
-          <UserMenu />
-        </header>
-        <main className="p-6">
-          <div className="max-w-2xl space-y-6">
+    <SidebarProvider>
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
             <div>
+              <Link href="/persons">
+                <Button variant="ghost" size="sm" className="mb-4">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Persons
+                </Button>
+              </Link>
               <h1 className="text-3xl font-bold tracking-tight">
                 {person.first_name} {person.last_name}
               </h1>
@@ -117,64 +116,66 @@ function PersonDetailContent() {
               </p>
             </div>
 
-            <div className="rounded-lg border bg-card p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    First Name
-                  </label>
-                  <p className="mt-1 text-lg">{person.first_name}</p>
+            <div className="max-w-2xl">
+              <div className="rounded-lg border bg-card p-6 shadow-sm space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      First Name
+                    </label>
+                    <p className="mt-2 text-lg font-medium">{person.first_name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Last Name
+                    </label>
+                    <p className="mt-2 text-lg font-medium">{person.last_name}</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Last Name
-                  </label>
-                  <p className="mt-1 text-lg">{person.last_name}</p>
-                </div>
-              </div>
 
-              {person.linkedin_url && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    LinkedIn
-                  </label>
-                  <a
-                    href={person.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-1 inline-flex items-center gap-2 text-blue-600 hover:underline"
-                  >
-                    View Profile
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              )}
+                {person.linkedin_url && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      LinkedIn
+                    </label>
+                    <a
+                      href={person.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-2 text-primary hover:underline"
+                    >
+                      View Profile
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
+                )}
 
-              <div className="grid grid-cols-2 gap-6 pt-4 border-t">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Created
-                  </label>
-                  <p className="mt-1 text-sm">
-                    {new Date(person.created_at).toLocaleDateString()} at{' '}
-                    {new Date(person.created_at).toLocaleTimeString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Last Updated
-                  </label>
-                  <p className="mt-1 text-sm">
-                    {new Date(person.updated_at).toLocaleDateString()} at{' '}
-                    {new Date(person.updated_at).toLocaleTimeString()}
-                  </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Created
+                    </label>
+                    <p className="mt-2 text-sm">
+                      {new Date(person.created_at).toLocaleDateString()} at{' '}
+                      {new Date(person.created_at).toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Last Updated
+                    </label>
+                    <p className="mt-2 text-sm">
+                      {new Date(person.updated_at).toLocaleDateString()} at{' '}
+                      {new Date(person.updated_at).toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 

@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { AgGridReact } from 'ag-grid-react'
 import { ColDef, themeQuartz } from 'ag-grid-community'
 import { AuthGuard } from '@/components/auth-guard'
-import { Sidebar } from '@/components/sidebar'
-import { UserMenu } from '@/components/user-menu'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SiteHeader } from '@/components/site-header'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Plus, Trash2, Eye, Pencil } from 'lucide-react'
 import { usePersons } from '@/lib/hooks/use-persons'
@@ -144,22 +145,20 @@ function PersonsContent() {
   ]
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1">
-        <header className="border-b bg-background p-4 flex justify-end">
-          <UserMenu />
-        </header>
-        <main className="p-6">
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
+    <SidebarProvider>
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+            <div className="flex justify-between items-center gap-4">
+              <div className="flex-1">
                 <h1 className="text-3xl font-bold tracking-tight">Persons</h1>
                 <p className="text-muted-foreground">
                   Manage and view all persons in your CRM.
                 </p>
               </div>
-              <Link href="/persons/create">
+              <Link href="/persons/create" className="flex-shrink-0">
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Person
@@ -168,12 +167,12 @@ function PersonsContent() {
             </div>
 
             {error && (
-              <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
                 {error}
               </div>
             )}
 
-            <div className="rounded-lg border bg-background overflow-hidden">
+            <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
               <div style={{ height: 500, width: '100%' }}>
                 <AgGridReact<Person>
                   rowData={persons}
@@ -186,9 +185,9 @@ function PersonsContent() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 

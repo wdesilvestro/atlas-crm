@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import Link from 'next/link'
 import { AuthGuard } from '@/components/auth-guard'
-import { Sidebar } from '@/components/sidebar'
-import { UserMenu } from '@/components/user-menu'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SiteHeader } from '@/components/site-header'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -117,133 +118,135 @@ function EditPersonContent() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <header className="border-b bg-background p-4 flex justify-end">
-            <UserMenu />
-          </header>
-          <main className="p-6">
-            <p className="text-muted-foreground">Loading...</p>
-          </main>
-        </div>
-      </div>
+      <SidebarProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     )
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1">
-          <header className="border-b bg-background p-4 flex justify-between items-center">
-            <Link href="/persons">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-            </Link>
-            <UserMenu />
-          </header>
-          <main className="p-6">
-            <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-              {error}
+      <SidebarProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+              <Link href="/persons">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Persons
+                </Button>
+              </Link>
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                {error}
+              </div>
             </div>
-          </main>
-        </div>
-      </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     )
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1">
-        <header className="border-b bg-background p-4 flex justify-between items-center">
-          <Link href={`/persons/${id}`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-          </Link>
-          <UserMenu />
-        </header>
-        <main className="p-6">
-          <div className="max-w-2xl">
-            <div className="mb-6">
+    <SidebarProvider>
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+            <div>
+              <Link href={`/persons/${id}`}>
+                <Button variant="ghost" size="sm" className="mb-4">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Person
+                </Button>
+              </Link>
               <h1 className="text-3xl font-bold tracking-tight">Edit Person</h1>
               <p className="text-muted-foreground">
                 Update information for {person?.first_name} {person?.last_name}
               </p>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {submitError && (
-                <div className="rounded-md bg-destructive/10 p-4 text-sm text-destructive">
-                  {submitError}
-                </div>
-              )}
+            <div className="max-w-2xl">
+              <div className="rounded-lg border bg-card p-6 shadow-sm">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                  {submitError && (
+                    <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                      {submitError}
+                    </div>
+                  )}
 
-              <div className="space-y-2">
-                <Label htmlFor="first_name">First Name</Label>
-                <Input
-                  id="first_name"
-                  placeholder="John"
-                  {...register('first_name', {
-                    required: 'First name is required',
-                  })}
-                  disabled={submitting}
-                />
-                {errors.first_name && (
-                  <p className="text-sm text-destructive">
-                    {errors.first_name.message}
-                  </p>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      placeholder="John"
+                      {...register('first_name', {
+                        required: 'First name is required',
+                      })}
+                      disabled={submitting}
+                    />
+                    {errors.first_name && (
+                      <p className="text-sm text-destructive">
+                        {errors.first_name.message}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input
-                  id="last_name"
-                  placeholder="Doe"
-                  {...register('last_name', {
-                    required: 'Last name is required',
-                  })}
-                  disabled={submitting}
-                />
-                {errors.last_name && (
-                  <p className="text-sm text-destructive">
-                    {errors.last_name.message}
-                  </p>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      placeholder="Doe"
+                      {...register('last_name', {
+                        required: 'Last name is required',
+                      })}
+                      disabled={submitting}
+                    />
+                    {errors.last_name && (
+                      <p className="text-sm text-destructive">
+                        {errors.last_name.message}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="linkedin_url">LinkedIn URL (Optional)</Label>
-                <Input
-                  id="linkedin_url"
-                  type="url"
-                  placeholder="https://linkedin.com/in/johndoe"
-                  {...register('linkedin_url')}
-                  disabled={submitting}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedin_url">LinkedIn URL (Optional)</Label>
+                    <Input
+                      id="linkedin_url"
+                      type="url"
+                      placeholder="https://linkedin.com/in/johndoe"
+                      {...register('linkedin_url')}
+                      disabled={submitting}
+                    />
+                  </div>
 
-              <div className="flex gap-3">
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? 'Saving...' : 'Save Changes'}
-                </Button>
-                <Link href={`/persons/${id}`}>
-                  <Button type="button" variant="outline">
-                    Cancel
-                  </Button>
-                </Link>
+                  <div className="flex gap-3">
+                    <Button type="submit" disabled={submitting}>
+                      {submitting ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                    <Link href={`/persons/${id}`}>
+                      <Button type="button" variant="outline">
+                        Cancel
+                      </Button>
+                    </Link>
+                  </div>
+                </form>
               </div>
-            </form>
+            </div>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
