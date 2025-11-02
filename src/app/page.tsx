@@ -1,39 +1,27 @@
 'use client'
 
 import { AuthGuard } from '@/components/auth-guard'
-import { useAuth } from '@/lib/auth-context'
-import { Button } from '@/components/ui/button'
+import { Sidebar } from '@/components/sidebar'
+import { UserMenu } from '@/components/user-menu'
 
 function HomeContent() {
-  const { user, signOut } = useAuth()
-
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-    } catch (error) {
-      console.error('Error signing out:', error)
-    }
-  }
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold">Welcome to Atlas CRM</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
-          Logged in as: <span className="font-semibold">{user?.email}</span>
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-500">
-          Get started by exploring the CRM features
-        </p>
-        <Button
-          onClick={handleSignOut}
-          variant="outline"
-          className="mt-6"
-        >
-          Sign Out
-        </Button>
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1">
+        <header className="border-b bg-background p-4 flex justify-end">
+          <UserMenu />
+        </header>
+        <main className="p-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome to Atlas CRM. Use the sidebar to navigate to different sections.
+            </p>
+          </div>
+        </main>
       </div>
-    </main>
+    </div>
   )
 }
 
