@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import { PersonAction, ActionType } from '@/types/person'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
@@ -17,11 +17,16 @@ interface ActionLogFormProps {
   onActionCreated: (action: PersonAction) => void
 }
 
-const ACTION_TYPES: { value: ActionType; label: string }[] = [
+const MY_ACTIONS: { value: ActionType; label: string }[] = [
   { value: 'linkedin_connection_request_sent', label: 'Sent LinkedIn connection request' },
   { value: 'linkedin_connection_request_retracted', label: 'Retracted LinkedIn connection request' },
   { value: 'linkedin_message_sent', label: 'Sent LinkedIn message' },
   { value: 'email_sent', label: 'Sent an email' },
+]
+
+const THEIR_ACTIONS: { value: ActionType; label: string }[] = [
+  { value: 'linkedin_connection_request_accepted', label: 'Accepted LinkedIn connection request' },
+  { value: 'linkedin_message_received', label: 'Received LinkedIn message' },
   { value: 'email_received', label: 'Received an email' },
 ]
 
@@ -36,6 +41,17 @@ const getLocalDateTime = () => {
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
+// Helper function to check if action is a "my action"
+const isMyAction = (actionType: ActionType | ''): boolean => {
+  const myActionTypes: ActionType[] = [
+    'linkedin_connection_request_sent',
+    'linkedin_connection_request_retracted',
+    'linkedin_message_sent',
+    'email_sent',
+  ]
+  return myActionTypes.includes(actionType as ActionType)
+}
+
 export default function ActionLogForm({ personId, onActionCreated }: ActionLogFormProps) {
   const { user } = useAuth()
   const [selectedActionType, setSelectedActionType] = useState<ActionType | ''>('')
@@ -47,9 +63,15 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
   // LinkedIn message fields
   const [linkedinMessageContent, setLinkedinMessageContent] = useState('')
 
+  // LinkedIn message received fields
+  const [linkedinMessageReceived, setLinkedinMessageReceived] = useState('')
+
   // Email fields
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
+
+  // Follow-up reminder field
+  const [followUpReminderDays, setFollowUpReminderDays] = useState('7')
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -68,7 +90,12 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
 
     // Validate required fields based on action type
     if (selectedActionType === 'linkedin_message_sent' && !linkedinMessageContent.trim()) {
-      toast.error('Message is required for LinkedIn message')
+      toast.error('Message is required for LinkedIn message sent')
+      return
+    }
+
+    if (selectedActionType === 'linkedin_message_received' && !linkedinMessageReceived.trim()) {
+      toast.error('Message is required for LinkedIn message received')
       return
     }
 
@@ -95,14 +122,25 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
         case 'linkedin_connection_request_retracted':
           additionalData = {}
           break
+        case 'linkedin_connection_request_accepted':
+          additionalData = {}
+          break
         case 'linkedin_message_sent':
           additionalData = { message: linkedinMessageContent }
+          break
+        case 'linkedin_message_received':
+          additionalData = { message: linkedinMessageReceived }
           break
         case 'email_sent':
         case 'email_received':
           additionalData = { subject: emailSubject, body: emailBody }
           break
       }
+
+      // Calculate follow-up reminder date if days is provided
+      const reminderDays = followUpReminderDays.trim() ? parseInt(followUpReminderDays) : null
+      const occurredDate = new Date(dateTime)
+      const followUpDate = reminderDays ? new Date(occurredDate.getTime() + reminderDays * 24 * 60 * 60 * 1000).toISOString() : null
 
       // Insert the action
       const { data, error } = await supabase
@@ -112,8 +150,10 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
             person_id: personId,
             user_id: user.id,
             action_type: selectedActionType,
-            occurred_at: new Date(dateTime).toISOString(),
+            occurred_at: occurredDate.toISOString(),
             additional_data: additionalData,
+            follow_up_reminder_days: reminderDays,
+            follow_up_reminder_date: followUpDate,
           },
         ])
         .select()
@@ -133,8 +173,10 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
       setDateTime(getLocalDateTime())
       setLinkedinMessage('')
       setLinkedinMessageContent('')
+      setLinkedinMessageReceived('')
       setEmailSubject('')
       setEmailBody('')
+      setFollowUpReminderDays('7')
 
       if (data) {
         onActionCreated(data as PersonAction)
@@ -179,11 +221,22 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
                 <SelectValue placeholder="Select an action type" />
               </SelectTrigger>
               <SelectContent>
-                {ACTION_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  <SelectLabel>My Actions</SelectLabel>
+                  {MY_ACTIONS.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Their Actions</SelectLabel>
+                  {THEIR_ACTIONS.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -220,6 +273,22 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
             </div>
           )}
 
+          {selectedActionType === 'linkedin_message_received' && (
+            <div className="space-y-2">
+              <label htmlFor="linkedin-message-received" className="text-sm font-medium">
+                Message *
+              </label>
+              <Textarea
+                id="linkedin-message-received"
+                placeholder="What message did you receive?"
+                value={linkedinMessageReceived}
+                onChange={(e) => setLinkedinMessageReceived(e.target.value)}
+                rows={3}
+                required
+              />
+            </div>
+          )}
+
           {(selectedActionType === 'email_sent' || selectedActionType === 'email_received') && (
             <>
               <div className="space-y-2">
@@ -248,6 +317,25 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
                 />
               </div>
             </>
+          )}
+
+          {/* Follow-up Reminder Input - Only for My Actions */}
+          {isMyAction(selectedActionType) && (
+            <div className="space-y-2">
+              <label htmlFor="follow-up-reminder" className="text-sm font-medium">
+                Follow-up Reminder (days)
+              </label>
+              <Input
+                id="follow-up-reminder"
+                type="number"
+                placeholder="7"
+                min="0"
+                value={followUpReminderDays}
+                onChange={(e) => setFollowUpReminderDays(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-muted-foreground">Set to 0 or leave empty to not set a reminder</p>
+            </div>
           )}
 
           {/* Submit Button */}

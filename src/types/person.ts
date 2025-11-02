@@ -61,7 +61,9 @@ export interface PersonWithDetails extends Person {
 export type ActionType =
   | 'linkedin_connection_request_sent'
   | 'linkedin_connection_request_retracted'
+  | 'linkedin_connection_request_accepted'
   | 'linkedin_message_sent'
+  | 'linkedin_message_received'
   | 'email_sent'
   | 'email_received'
 
@@ -72,7 +74,13 @@ export interface LinkedInConnectionRequestSentData {
 
 export interface LinkedInConnectionRequestRetractedData {}
 
+export interface LinkedInConnectionRequestAcceptedData {}
+
 export interface LinkedInMessageSentData {
+  message: string
+}
+
+export interface LinkedInMessageReceivedData {
   message: string
 }
 
@@ -89,7 +97,9 @@ export interface EmailReceivedData {
 export type ActionAdditionalData =
   | LinkedInConnectionRequestSentData
   | LinkedInConnectionRequestRetractedData
+  | LinkedInConnectionRequestAcceptedData
   | LinkedInMessageSentData
+  | LinkedInMessageReceivedData
   | EmailSentData
   | EmailReceivedData
 
@@ -100,6 +110,8 @@ export interface PersonAction {
   action_type: ActionType
   occurred_at: string
   additional_data: ActionAdditionalData
+  follow_up_reminder_days: number | null
+  follow_up_reminder_date: string | null
   created_at: string
   updated_at: string
 }
