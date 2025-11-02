@@ -9,19 +9,26 @@ import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
-import { Person } from '@/types/person'
+import { Person, PersonOrganization } from '@/types/person'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
+
+interface PersonOrganizationWithDetails extends PersonOrganization {
+  organization_name: string
+}
 
 function PersonDetailContent() {
   const params = useParams()
   const id = params.id as string
 
   const [person, setPerson] = useState<Person | null>(null)
+  const [organizations, setOrganizations] = useState<
+    PersonOrganizationWithDetails[]
+  >([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchPerson = async () => {
+    const fetchData = async () => {
       setLoading(true)
       setError(null)
 
@@ -41,6 +48,25 @@ function PersonDetailContent() {
         }
 
         setPerson(data)
+
+        // Fetch organization links
+        const { data: orgLinks, error: linksError } = await supabase
+          .from('person_organization')
+          .select('*, organization:organization_id(name)')
+          .eq('person_id', id)
+
+        if (linksError) {
+          throw linksError
+        }
+
+        if (orgLinks) {
+          setOrganizations(
+            orgLinks.map((link: any) => ({
+              ...link,
+              organization_name: link.organization.name,
+            }))
+          )
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch person'
@@ -51,7 +77,7 @@ function PersonDetailContent() {
       }
     }
 
-    fetchPerson()
+    fetchData()
   }, [id])
 
   if (loading) {
@@ -169,6 +195,43 @@ function PersonDetailContent() {
                       {new Date(person.updated_at).toLocaleTimeString()}
                     </p>
                   </div>
+                </div>
+
+                {/* Organizations Section */}
+                {organizations.length > 0 && (
+                  <div className="pt-6 border-t">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Organizations
+                    </label>
+                    <div className="mt-4 space-y-2">
+                      {organizations.map((org) => (
+                        <Link
+                          key={org.organization_id}
+                          href={`/organizations/${org.organization_id}`}
+                        >
+                          <div className="rounded-lg border bg-muted/30 p-3 hover:bg-muted/50 transition-colors cursor-pointer">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {org.organization_name}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {org.role}
+                                </p>
+                              </div>
+                              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-6 border-t">
+                  <Link href={`/persons/${id}/edit`}>
+                    <Button>Edit Person</Button>
+                  </Link>
                 </div>
               </div>
             </div>

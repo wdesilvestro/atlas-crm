@@ -10,18 +10,25 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { Organization } from '@/types/organization'
+import { PersonOrganization } from '@/types/person'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
+
+interface PersonOrganizationWithDetails extends PersonOrganization {
+  person_first_name: string
+  person_last_name: string
+}
 
 function OrganizationDetailContent() {
   const params = useParams()
   const id = params.id as string
 
   const [organization, setOrganization] = useState<Organization | null>(null)
+  const [persons, setPersons] = useState<PersonOrganizationWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchOrganization = async () => {
+    const fetchData = async () => {
       setLoading(true)
       setError(null)
 
@@ -41,6 +48,26 @@ function OrganizationDetailContent() {
         }
 
         setOrganization(data)
+
+        // Fetch person links
+        const { data: personLinks, error: linksError } = await supabase
+          .from('person_organization')
+          .select('*, person:person_id(first_name, last_name)')
+          .eq('organization_id', id)
+
+        if (linksError) {
+          throw linksError
+        }
+
+        if (personLinks) {
+          setPersons(
+            personLinks.map((link: any) => ({
+              ...link,
+              person_first_name: link.person.first_name,
+              person_last_name: link.person.last_name,
+            }))
+          )
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch organization'
@@ -51,7 +78,7 @@ function OrganizationDetailContent() {
       }
     }
 
-    fetchOrganization()
+    fetchData()
   }, [id])
 
   if (loading) {
@@ -179,6 +206,37 @@ function OrganizationDetailContent() {
                     </p>
                   </div>
                 </div>
+
+                {/* Persons Section */}
+                {persons.length > 0 && (
+                  <div className="pt-6 border-t">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Linked Persons
+                    </label>
+                    <div className="mt-4 space-y-2">
+                      {persons.map((person) => (
+                        <Link
+                          key={person.person_id}
+                          href={`/persons/${person.person_id}`}
+                        >
+                          <div className="rounded-lg border bg-muted/30 p-3 hover:bg-muted/50 transition-colors cursor-pointer">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-sm">
+                                  {person.person_first_name} {person.person_last_name}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {person.role}
+                                </p>
+                              </div>
+                              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-6 border-t">
                   <Link href={`/organizations/${id}/edit`}>
