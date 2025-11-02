@@ -176,6 +176,26 @@ function PersonDetailContent() {
                   </div>
                 )}
 
+                {person.formatted_address && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Location
+                    </label>
+                    <div className="mt-2 space-y-1">
+                      {person.street_address && (
+                        <p className="text-sm">{person.street_address}</p>
+                      )}
+                      <p className="text-sm">
+                        {[person.city, person.state_province]
+                          .filter(Boolean)
+                          .join(', ')}
+                        {person.postal_code && ` ${person.postal_code}`}
+                      </p>
+                      {person.country && <p className="text-sm">{person.country}</p>}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">

@@ -15,6 +15,7 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft, X } from 'lucide-react'
 import { Organization } from '@/types/organization'
+import { LocationField } from '@/components/LocationField'
 
 interface CreatePersonForm {
   first_name: string
@@ -40,6 +41,23 @@ function CreatePersonContent() {
   const [selectedOrgId, setSelectedOrgId] = useState<string>('')
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [orgError, setOrgError] = useState<string | null>(null)
+  const [location, setLocation] = useState<{
+    street_address: string | null
+    city: string | null
+    state_province: string | null
+    postal_code: string | null
+    country: string | null
+    formatted_address: string | null
+    place_id: string | null
+  }>({
+    street_address: null,
+    city: null,
+    state_province: null,
+    postal_code: null,
+    country: null,
+    formatted_address: null,
+    place_id: null,
+  })
 
   const {
     register,
@@ -132,6 +150,13 @@ function CreatePersonContent() {
             last_name: data.last_name,
             linkedin_url: data.linkedin_url || null,
             user_id: user.id,
+            street_address: location.street_address,
+            city: location.city,
+            state_province: location.state_province,
+            postal_code: location.postal_code,
+            country: location.country,
+            formatted_address: location.formatted_address,
+            place_id: location.place_id,
           },
         ])
         .select()
@@ -249,6 +274,16 @@ function CreatePersonContent() {
                       type="url"
                       placeholder="https://linkedin.com/in/johndoe"
                       {...register('linkedin_url')}
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location (Optional)</Label>
+                    <LocationField
+                      value={location}
+                      onChange={setLocation}
+                      placeholder="Search for a city, state, or country"
                       disabled={loading}
                     />
                   </div>

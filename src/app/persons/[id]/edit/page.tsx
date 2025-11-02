@@ -16,6 +16,7 @@ import { Person, PersonOrganization } from '@/types/person'
 import { Organization } from '@/types/organization'
 import { ArrowLeft, X } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { LocationField } from '@/components/LocationField'
 
 interface EditPersonForm {
   first_name: string
@@ -45,6 +46,23 @@ function EditPersonContent() {
   const [selectedOrgId, setSelectedOrgId] = useState<string>('')
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [orgError, setOrgError] = useState<string | null>(null)
+  const [location, setLocation] = useState<{
+    street_address: string | null
+    city: string | null
+    state_province: string | null
+    postal_code: string | null
+    country: string | null
+    formatted_address: string | null
+    place_id: string | null
+  }>({
+    street_address: null,
+    city: null,
+    state_province: null,
+    postal_code: null,
+    country: null,
+    formatted_address: null,
+    place_id: null,
+  })
 
   const {
     register,
@@ -85,6 +103,15 @@ function EditPersonContent() {
           first_name: personData.first_name,
           last_name: personData.last_name,
           linkedin_url: personData.linkedin_url || '',
+        })
+        setLocation({
+          street_address: personData.street_address,
+          city: personData.city,
+          state_province: personData.state_province,
+          postal_code: personData.postal_code,
+          country: personData.country,
+          formatted_address: personData.formatted_address,
+          place_id: personData.place_id,
         })
 
         // Fetch person's organization links
@@ -188,6 +215,13 @@ function EditPersonContent() {
           first_name: data.first_name,
           last_name: data.last_name,
           linkedin_url: data.linkedin_url || null,
+          street_address: location.street_address,
+          city: location.city,
+          state_province: location.state_province,
+          postal_code: location.postal_code,
+          country: location.country,
+          formatted_address: location.formatted_address,
+          place_id: location.place_id,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -352,6 +386,16 @@ function EditPersonContent() {
                       type="url"
                       placeholder="https://linkedin.com/in/johndoe"
                       {...register('linkedin_url')}
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location (Optional)</Label>
+                    <LocationField
+                      value={location}
+                      onChange={setLocation}
+                      placeholder="Search for a city, state, or country"
                       disabled={submitting}
                     />
                   </div>

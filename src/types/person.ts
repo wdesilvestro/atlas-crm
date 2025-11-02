@@ -29,6 +29,13 @@ export interface Person {
   first_name: string
   last_name: string
   linkedin_url: string | null
+  street_address: string | null
+  city: string | null
+  state_province: string | null
+  postal_code: string | null
+  country: string | null
+  formatted_address: string | null
+  place_id: string | null
   created_at: string
   updated_at: string
 }
