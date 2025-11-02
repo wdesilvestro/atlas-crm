@@ -23,6 +23,15 @@ export interface PersonOrganization {
   updated_at: string
 }
 
+export interface PersonTag {
+  id: string
+  name: string
+  object_type: 'person'
+  user_id: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Person {
   id: string
   user_id: string
@@ -38,6 +47,7 @@ export interface Person {
   place_id: string | null
   created_at: string
   updated_at: string
+  tags?: PersonTag[]
 }
 
 export interface PersonWithDetails extends Person {

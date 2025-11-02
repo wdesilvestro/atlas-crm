@@ -21,7 +21,39 @@ export function useOrganizations() {
         throw fetchError
       }
 
-      setOrganizations(data || [])
+      // Fetch tags for each organization
+      if (data && data.length > 0) {
+        const organizationIds = data.map((o) => o.id)
+        const { data: tagData, error: tagsError } = await supabase
+          .from('organization_tag')
+          .select('organization_id, tag(id, name, object_type, user_id, created_at, updated_at)')
+          .in('organization_id', organizationIds)
+
+        if (tagsError) {
+          throw tagsError
+        }
+
+        // Create a map of organization_id to tags
+        const tagsMap = new Map<string, any[]>()
+        if (tagData) {
+          tagData.forEach((item: any) => {
+            if (!tagsMap.has(item.organization_id)) {
+              tagsMap.set(item.organization_id, [])
+            }
+            tagsMap.get(item.organization_id)?.push(item.tag)
+          })
+        }
+
+        // Add tags to organizations
+        const organizationsWithTags = data.map((org) => ({
+          ...org,
+          tags: tagsMap.get(org.id) || [],
+        }))
+
+        setOrganizations(organizationsWithTags)
+      } else {
+        setOrganizations(data || [])
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch organizations'

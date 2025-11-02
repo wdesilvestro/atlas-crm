@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AgGridReact } from 'ag-grid-react'
-import { ColDef, themeQuartz } from 'ag-grid-community'
+import { ColDef, DoesFilterPassParams, themeQuartz } from 'ag-grid-community'
 import { AuthGuard } from '@/components/auth-guard'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
@@ -14,6 +14,9 @@ import { useOrganizations } from '@/lib/hooks/use-organizations'
 import { Organization } from '@/types/organization'
 import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
+import TagFilterComponent, {
+  TagFilterModel,
+} from '@/components/TagFilterComponent'
 
 function OrganizationsContent() {
   const router = useRouter()
@@ -98,6 +101,61 @@ function OrganizationsContent() {
             View Profile <ExternalLink className="h-3 w-3" />
           </a>
         )
+      },
+    },
+    {
+      headerName: 'Tags',
+      field: 'tags',
+      flex: 1,
+      minWidth: 200,
+      filterParams: { objectType: 'organization' as const },
+      cellRenderer: (props: { data: Organization }) => {
+        const tags = props.data?.tags || []
+        if (tags.length === 0) return <span className="text-gray-400">-</span>
+        return (
+          <div className="flex flex-wrap gap-1 py-2">
+            {tags.map((tag) => (
+              <div
+                key={tag.id}
+                className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
+              >
+                {tag.name}
+              </div>
+            ))}
+          </div>
+        )
+      },
+      filter: {
+        component: TagFilterComponent,
+        handler: (params: any) => {
+          console.log('Filter handler initialized with params.model:', params.model)
+          return {
+            doesFilterPass: (
+              filterParams: DoesFilterPassParams<Organization, any, TagFilterModel>
+            ) => {
+              const selectedTagIds = filterParams.model?.selectedTagIds || []
+              console.log('doesFilterPass called - selectedTagIds:', selectedTagIds)
+              console.log('doesFilterPass - filterParams.data:', filterParams.data)
+
+              // If no tags selected, pass all rows
+              if (selectedTagIds.length === 0) {
+                return true
+              }
+
+              // Get tags from the row
+              const rowTags = filterParams.data?.tags || []
+              const rowTagIds = rowTags.map((t: any) => t.id)
+              console.log('Filter handler - rowTags:', rowTags, 'rowTagIds:', rowTagIds)
+
+              // Require the row to include every selected tag
+              const result = selectedTagIds.every((tagId: string) =>
+                rowTagIds.includes(tagId)
+              )
+              console.log('Filter result (matches all selected tags):', result)
+              return result
+            },
+          }
+        },
       },
     },
     {
@@ -194,6 +252,7 @@ function OrganizationsContent() {
                   pagination={true}
                   paginationPageSize={10}
                   theme={themeQuartz}
+                  enableFilterHandlers={true}
                 />
               </div>
             </div>

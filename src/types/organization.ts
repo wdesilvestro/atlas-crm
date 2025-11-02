@@ -1,5 +1,14 @@
 import { PersonOrganization } from './person'
 
+export interface OrganizationTag {
+  id: string
+  name: string
+  object_type: 'organization'
+  user_id: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Organization {
   id: string
   user_id: string
@@ -8,6 +17,7 @@ export interface Organization {
   linkedin_url: string | null
   created_at: string
   updated_at: string
+  tags?: OrganizationTag[]
 }
 
 export interface OrganizationWithDetails extends Organization {
