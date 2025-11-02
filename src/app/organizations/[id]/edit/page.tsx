@@ -23,6 +23,7 @@ interface EditOrganizationForm {
   name: string
   website?: string
   linkedin_url?: string
+  status: 'Active' | 'Inactive'
 }
 
 interface SelectedPerson extends PersonOrganization {
@@ -58,6 +59,7 @@ function EditOrganizationContent() {
       name: '',
       website: '',
       linkedin_url: '',
+      status: 'Active',
     },
   })
 
@@ -86,6 +88,7 @@ function EditOrganizationContent() {
           name: orgData.name,
           website: orgData.website || '',
           linkedin_url: orgData.linkedin_url || '',
+          status: orgData.status,
         })
 
         // Fetch organization's person links
@@ -201,6 +204,7 @@ function EditOrganizationContent() {
           name: data.name,
           website: data.website || null,
           linkedin_url: data.linkedin_url || null,
+          status: data.status,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -391,6 +395,19 @@ function EditOrganizationContent() {
                       {...register('linkedin_url')}
                       disabled={submitting}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <select
+                      id="status"
+                      {...register('status')}
+                      disabled={submitting}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
                   </div>
 
                   {/* Tags Section */}

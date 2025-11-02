@@ -24,6 +24,7 @@ interface EditPersonForm {
   first_name: string
   last_name: string
   linkedin_url?: string
+  status: 'Active' | 'Inactive'
 }
 
 interface SelectedOrganization extends PersonOrganization {
@@ -77,6 +78,7 @@ function EditPersonContent() {
       first_name: '',
       last_name: '',
       linkedin_url: '',
+      status: 'Active',
     },
   })
 
@@ -106,6 +108,7 @@ function EditPersonContent() {
           first_name: personData.first_name,
           last_name: personData.last_name,
           linkedin_url: personData.linkedin_url || '',
+          status: personData.status,
         })
         setLocation({
           street_address: personData.street_address,
@@ -233,6 +236,7 @@ function EditPersonContent() {
           first_name: data.first_name,
           last_name: data.last_name,
           linkedin_url: data.linkedin_url || null,
+          status: data.status,
           street_address: location.street_address,
           city: location.city,
           state_province: location.state_province,
@@ -436,6 +440,19 @@ function EditPersonContent() {
                       {...register('linkedin_url')}
                       disabled={submitting}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <select
+                      id="status"
+                      {...register('status')}
+                      disabled={submitting}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
                   </div>
 
                   <div className="space-y-2">

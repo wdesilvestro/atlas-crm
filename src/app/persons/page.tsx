@@ -15,6 +15,7 @@ import { Person } from '@/types/person'
 import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
+import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
 
 function PersonsContent() {
   const router = useRouter()
@@ -68,6 +69,40 @@ function PersonsContent() {
       headerName: 'Last Name',
       flex: 1,
       minWidth: 150,
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      flex: 1,
+      minWidth: 120,
+      cellRenderer: (props: { value: string }) => {
+        const isActive = props.value === 'Active'
+        return (
+          <div
+            className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap inline-block ${
+              isActive
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            {props.value}
+          </div>
+        )
+      },
+      filter: {
+        component: createStatusFilter(),
+        handler: (params: any) => {
+          return {
+            doesFilterPass: (
+              filterParams: DoesFilterPassParams<Person, any, StatusFilterModel>
+            ) => {
+              const selectedStatus = filterParams.model?.selectedStatus
+              if (!selectedStatus) return true
+              return filterParams.data?.status === selectedStatus
+            },
+          }
+        },
+      },
     },
     {
       field: 'linkedin_url',

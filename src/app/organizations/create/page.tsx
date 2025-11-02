@@ -21,6 +21,7 @@ interface CreateOrganizationForm {
   name: string
   website?: string
   linkedin_url?: string
+  status: 'Active' | 'Inactive'
 }
 
 function CreateOrganizationContent() {
@@ -38,6 +39,7 @@ function CreateOrganizationContent() {
       name: '',
       website: '',
       linkedin_url: '',
+      status: 'Active',
     },
   })
 
@@ -58,6 +60,7 @@ function CreateOrganizationContent() {
             website: data.website || null,
             linkedin_url: data.linkedin_url || null,
             user_id: user.id,
+            status: data.status,
           },
         ])
         .select()
@@ -168,6 +171,19 @@ function CreateOrganizationContent() {
                       {...register('linkedin_url')}
                       disabled={loading}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <select
+                      id="status"
+                      {...register('status')}
+                      disabled={loading}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
                   </div>
 
                   {/* Tags Section */}

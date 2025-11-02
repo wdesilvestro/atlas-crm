@@ -203,6 +203,23 @@ function OrganizationDetailContent() {
                   </div>
                 )}
 
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Status
+                  </label>
+                  <div className="mt-2">
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${
+                        organization.status === 'Active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {organization.status}
+                    </div>
+                  </div>
+                </div>
+
                 {tags.length > 0 && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">

@@ -15,6 +15,7 @@ export interface Organization {
   name: string
   website: string | null
   linkedin_url: string | null
+  status: 'Active' | 'Inactive'
   created_at: string
   updated_at: string
   tags?: OrganizationTag[]

@@ -193,6 +193,23 @@ function PersonDetailContent() {
                   </div>
                 )}
 
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Status
+                  </label>
+                  <div className="mt-2">
+                    <div
+                      className={`px-3 py-1 rounded-full text-sm font-medium inline-block ${
+                        person.status === 'Active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {person.status}
+                    </div>
+                  </div>
+                </div>
+
                 {person.formatted_address && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
