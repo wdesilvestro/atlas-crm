@@ -250,7 +250,7 @@ function OrganizationsContent() {
                   columnDefs={columnDefs}
                   loading={loading}
                   pagination={true}
-                  paginationPageSize={10}
+                  paginationPageSize={100}
                   theme={themeQuartz}
                   enableFilterHandlers={true}
                 />
