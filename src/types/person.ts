@@ -1,0 +1,29 @@
+export interface PersonEmail {
+  id: string
+  person_id: string
+  email: string
+  is_primary: boolean
+  created_at: string
+}
+
+export interface PersonPhone {
+  id: string
+  person_id: string
+  phone_number: string
+  is_primary: boolean
+  created_at: string
+}
+
+export interface Person {
+  id: string
+  first_name: string
+  last_name: string
+  linkedin_url: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PersonWithDetails extends Person {
+  emails: PersonEmail[]
+  phones: PersonPhone[]
+}

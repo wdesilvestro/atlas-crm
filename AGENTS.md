@@ -24,15 +24,50 @@ This project uses a modern, lightweight stack optimized for rapid development an
 - **PostCSS** - CSS processing with autoprefixer
 - **TypeScript** - Static type checking
 
+## Database Schema & Migrations
+
+### ✅ DO: Version Control All Schema Changes
+
+All database schema changes **MUST** be version controlled using Supabase CLI migrations. This ensures:
+- Reproducible deployments across environments
+- Audit trail of all schema changes
+- Easy rollback capabilities
+- Team collaboration on database changes
+
+**Migration Workflow:**
+```bash
+# Create a new migration
+supabase migration new your_migration_name
+
+# Edit the generated SQL file in supabase/migrations/
+# Then push to your remote database
+supabase db push
+
+# Pull schema changes from production
+supabase pull
+```
+
+**Migration file example:** `supabase/migrations/20251102045141_create_person_schema.sql`
+- Timestamped filenames (auto-generated) ensure proper ordering
+- All migrations are tracked in git
+- Remote and local databases stay in sync
+
+### ❌ DON'T: Manual Schema Changes
+
+- Do not make schema changes directly in the Supabase dashboard
+- Do not skip version control for schema modifications
+- Do not push schema changes without committing migrations to git
+
 ## CRUD Operations Standards
 
 ### ✅ DO: Use PostgREST & Supabase Client
 
 All database operations **MUST** use the Supabase client with PostgREST. This ensures:
-- Automatic REST endpoint generation
+- Automatic REST endpoint generation from database tables
 - Built-in Row Level Security (RLS) enforcement
 - Type safety with proper error handling
 - Consistent API across the application
+- Database-side filtering for optimal performance
 
 **Example Pattern:**
 ```typescript
@@ -44,17 +79,26 @@ const { data, error } = await supabase
   .insert([{ column: 'value' }])
   .select()
 
-// Read
+// Read - Single record
 const { data, error } = await supabase
   .from('table_name')
   .select('*')
   .eq('id', id)
+  .single()
+
+// Read - Multiple records with filtering
+const { data, error } = await supabase
+  .from('table_name')
+  .select('*')
+  .eq('status', 'active')
+  .order('created_at', { ascending: false })
 
 // Update
 const { data, error } = await supabase
   .from('table_name')
-  .update({ column: 'new_value' })
+  .update({ column: 'new_value', updated_at: new Date().toISOString() })
   .eq('id', id)
+  .select()
 
 // Delete
 const { data, error } = await supabase
@@ -67,16 +111,30 @@ const { data, error } = await supabase
 
 - Do not write raw SQL queries in the frontend
 - Do not bypass PostgREST with direct database connections
-- Do not use custom API routes as middlemen for simple CRUD
+- Do not use custom API routes as middlemen for simple CRUD operations
+- Do not make schema changes directly in the dashboard without migrations
 
 ### RLS (Row Level Security)
 
-All tables should have RLS policies enforced. Examples:
+All tables **MUST** have RLS policies enforced. Examples:
 - Users can only view/edit their own records
 - Admin users have elevated permissions
 - Sensitive data is protected at the database level
 
-When implementing new features, always define appropriate RLS policies in Supabase.
+**When implementing new features:**
+1. Define RLS policies in your migration file
+2. Test policies before deploying to production
+3. Document policy rules in comments within the migration
+
+**Example RLS Policy in Migration:**
+```sql
+-- Enable RLS
+ALTER TABLE person ENABLE ROW LEVEL SECURITY;
+
+-- Create policy
+CREATE POLICY "Users can view their own records" ON person
+  FOR SELECT USING (auth.uid() = user_id);
+```
 
 ## File Structure
 
@@ -101,11 +159,16 @@ See `.env.example` for the template.
 
 ## Development Workflow
 
-1. **Create database tables** in Supabase with appropriate RLS policies
+1. **Create migrations** for any database schema changes
+   - Use `supabase migration new migration_name`
+   - Write SQL in the generated migration file
+   - Push with `supabase db push`
+   - Commit migration files to git
 2. **Define TypeScript types** for your data models
-3. **Use Supabase client** for all CRUD operations
-4. **Build UI** with shadcn/ui components and Tailwind CSS
-5. **Test authentication** with Supabase Auth
+3. **Use Supabase client** for all CRUD operations via PostgREST
+4. **Implement RLS policies** in migration files for data protection
+5. **Build UI** with shadcn/ui components and Tailwind CSS
+6. **Test authentication** with Supabase Auth
 
 ## Performance Considerations
 
