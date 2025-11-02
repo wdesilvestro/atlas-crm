@@ -131,6 +131,7 @@ function CreatePersonContent() {
             first_name: data.first_name,
             last_name: data.last_name,
             linkedin_url: data.linkedin_url || null,
+            user_id: user.id,
           },
         ])
         .select()

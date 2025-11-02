@@ -25,6 +25,7 @@ export interface PersonOrganization {
 
 export interface Person {
   id: string
+  user_id: string
   first_name: string
   last_name: string
   linkedin_url: string | null
