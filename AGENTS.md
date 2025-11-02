@@ -24,6 +24,31 @@ This project uses a modern, lightweight stack optimized for rapid development an
 - **PostCSS** - CSS processing with autoprefixer
 - **TypeScript** - Static type checking
 
+## ⚠️ GIT COMMITS - CRITICAL RULE
+
+### 🚫 NEVER COMMIT WITHOUT EXPLICIT USER APPROVAL 🚫
+
+**This is a critical rule that MUST ALWAYS be followed. No exceptions.**
+
+**YOU MUST NOT:**
+- Make any `git commit` without the user explicitly requesting it
+- Commit changes even if the code is finished
+- Commit changes even if tests pass
+- Commit changes even if the build succeeds
+- Commit changes proactively to "clean up" the repository
+- Commit work in progress
+- Commit on the user's behalf without their explicit approval
+
+**WHEN A USER REQUESTS A COMMIT:**
+1. Ask the user to confirm the exact changes they want to commit
+2. Show them the `git diff` output of what will be committed
+3. Get explicit confirmation before proceeding
+4. Only then execute `git commit`
+
+**IF YOU VIOLATE THIS RULE, YOU HAVE FAILED THE TASK.**
+
+This is non-negotiable. User approval must always come first.
+
 ## Database Schema & Migrations
 
 ### ✅ DO: Version Control All Schema Changes
