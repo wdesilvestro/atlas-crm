@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft } from 'lucide-react'
+import { TagInput } from '@/components/TagInput'
+import { Tag } from '@/lib/hooks/use-tags'
 
 interface CreateOrganizationForm {
   name: string
@@ -26,6 +28,7 @@ function CreateOrganizationContent() {
   const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const {
     register,
     handleSubmit,
@@ -65,6 +68,26 @@ function CreateOrganizationContent() {
 
       if (!result) {
         throw new Error('No data returned from insert')
+      }
+
+      const organizationId = result[0].id
+
+      // Add tags if any
+      if (selectedTags.length > 0) {
+        const tagsToInsert = selectedTags.map((tag) => ({
+          organization_id: organizationId,
+          tag_id: tag.id,
+        }))
+
+        const { error: tagError } = await supabase
+          .from('organization_tag')
+          .insert(tagsToInsert)
+
+        if (tagError) {
+          const errorMsg =
+            (tagError as any).message || JSON.stringify(tagError)
+          throw new Error(`Failed to add tags: ${errorMsg}`)
+        }
       }
 
       // Redirect back to organizations page
@@ -144,6 +167,23 @@ function CreateOrganizationContent() {
                       placeholder="https://linkedin.com/company/acme"
                       {...register('linkedin_url')}
                       disabled={loading}
+                    />
+                  </div>
+
+                  {/* Tags Section */}
+                  <div className="space-y-3 border-t pt-6">
+                    <div>
+                      <h3 className="text-sm font-semibold">
+                        Tags (Optional)
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Add tags to categorize this organization
+                      </p>
+                    </div>
+                    <TagInput
+                      objectType="organization"
+                      selectedTags={selectedTags}
+                      onTagsChange={setSelectedTags}
                     />
                   </div>
 

@@ -17,6 +17,8 @@ import { Organization } from '@/types/organization'
 import { ArrowLeft, X } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { LocationField } from '@/components/LocationField'
+import { TagInput } from '@/components/TagInput'
+import { Tag } from '@/lib/hooks/use-tags'
 
 interface EditPersonForm {
   first_name: string
@@ -63,6 +65,7 @@ function EditPersonContent() {
     formatted_address: null,
     place_id: null,
   })
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
 
   const {
     register,
@@ -131,6 +134,21 @@ function EditPersonContent() {
               organization_name: link.organization.name,
             }))
           )
+        }
+
+        // Fetch person's tags
+        const { data: tagLinks, error: tagsError } = await supabase
+          .from('person_tag')
+          .select('tag(*)')
+          .eq('person_id', id)
+
+        if (tagsError) {
+          throw tagsError
+        }
+
+        if (tagLinks) {
+          const tags = tagLinks.map((link: any) => link.tag).filter(Boolean)
+          setSelectedTags(tags)
         }
 
         // Fetch organizations for the current user
@@ -261,6 +279,36 @@ function EditPersonContent() {
           const errorMsg =
             (linkError as any).message || JSON.stringify(linkError)
           throw new Error(`Failed to add organization links: ${errorMsg}`)
+        }
+      }
+
+      // Delete all existing tags
+      const { error: deleteTagError } = await supabase
+        .from('person_tag')
+        .delete()
+        .eq('person_id', id)
+
+      if (deleteTagError) {
+        const errorMsg =
+          (deleteTagError as any).message || JSON.stringify(deleteTagError)
+        throw new Error(`Failed to delete tags: ${errorMsg}`)
+      }
+
+      // Add the updated tags
+      if (selectedTags.length > 0) {
+        const tagsToInsert = selectedTags.map((tag) => ({
+          person_id: id,
+          tag_id: tag.id,
+        }))
+
+        const { error: tagError } = await supabase
+          .from('person_tag')
+          .insert(tagsToInsert)
+
+        if (tagError) {
+          const errorMsg =
+            (tagError as any).message || JSON.stringify(tagError)
+          throw new Error(`Failed to add tags: ${errorMsg}`)
         }
       }
 
@@ -397,6 +445,23 @@ function EditPersonContent() {
                       onChange={setLocation}
                       placeholder="Search for a city, state, or country"
                       disabled={submitting}
+                    />
+                  </div>
+
+                  {/* Tags Section */}
+                  <div className="space-y-3 border-t pt-6">
+                    <div>
+                      <h3 className="text-sm font-semibold">
+                        Tags (Optional)
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Add tags to categorize this person
+                      </p>
+                    </div>
+                    <TagInput
+                      objectType="person"
+                      selectedTags={selectedTags}
+                      onTagsChange={setSelectedTags}
                     />
                   </div>
 

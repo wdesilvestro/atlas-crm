@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { UsersIcon, Building2, LogOut, ChevronDown } from "lucide-react"
+import { UsersIcon, Building2, LogOut, ChevronDown, Tags as TagsIcon } from "lucide-react"
 
 import {
   Sidebar,
@@ -13,6 +13,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import {
   DropdownMenu,
@@ -32,6 +34,21 @@ const navItems = [
     title: "Organizations",
     url: "/organizations",
     icon: Building2,
+  },
+  {
+    title: "Tags",
+    url: "/tags",
+    icon: TagsIcon,
+    submenu: [
+      {
+        title: "Person Tags",
+        url: "/tags#person-tags",
+      },
+      {
+        title: "Organization Tags",
+        url: "/tags#org-tags",
+      },
+    ],
   },
 ]
 
@@ -66,17 +83,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {navItems.map((item) => {
+          {navItems.map((item: any) => {
             const Icon = item.icon
             return (
-              <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.url}>
-                    <Icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <React.Fragment key={item.url}>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href={item.url}>
+                      <Icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                {item.submenu && (
+                  <SidebarMenuSub>
+                    {item.submenu.map((subitem: any) => (
+                      <SidebarMenuSubItem key={subitem.url}>
+                        <SidebarMenuButton asChild>
+                          <Link href={subitem.url}>
+                            <span>{subitem.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                )}
+              </React.Fragment>
             )
           })}
         </SidebarMenu>

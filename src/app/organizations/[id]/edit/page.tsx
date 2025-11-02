@@ -16,6 +16,8 @@ import { Organization } from '@/types/organization'
 import { Person, PersonOrganization } from '@/types/person'
 import { ArrowLeft, X } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { TagInput } from '@/components/TagInput'
+import { Tag } from '@/lib/hooks/use-tags'
 
 interface EditOrganizationForm {
   name: string
@@ -44,6 +46,7 @@ function EditOrganizationContent() {
   const [selectedPersonId, setSelectedPersonId] = useState<string>('')
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [personError, setPersonError] = useState<string | null>(null)
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([])
 
   const {
     register,
@@ -103,6 +106,21 @@ function EditOrganizationContent() {
               person_last_name: link.person.last_name,
             }))
           )
+        }
+
+        // Fetch organization's tags
+        const { data: tagLinks, error: tagsError } = await supabase
+          .from('organization_tag')
+          .select('tag(*)')
+          .eq('organization_id', id)
+
+        if (tagsError) {
+          throw tagsError
+        }
+
+        if (tagLinks) {
+          const tags = tagLinks.map((link: any) => link.tag).filter(Boolean)
+          setSelectedTags(tags)
         }
 
         // Fetch all persons
@@ -225,6 +243,36 @@ function EditOrganizationContent() {
         }
       }
 
+      // Delete all existing tags
+      const { error: deleteTagError } = await supabase
+        .from('organization_tag')
+        .delete()
+        .eq('organization_id', id)
+
+      if (deleteTagError) {
+        const errorMsg =
+          (deleteTagError as any).message || JSON.stringify(deleteTagError)
+        throw new Error(`Failed to delete tags: ${errorMsg}`)
+      }
+
+      // Add the updated tags
+      if (selectedTags.length > 0) {
+        const tagsToInsert = selectedTags.map((tag) => ({
+          organization_id: id,
+          tag_id: tag.id,
+        }))
+
+        const { error: tagError } = await supabase
+          .from('organization_tag')
+          .insert(tagsToInsert)
+
+        if (tagError) {
+          const errorMsg =
+            (tagError as any).message || JSON.stringify(tagError)
+          throw new Error(`Failed to add tags: ${errorMsg}`)
+        }
+      }
+
       // Redirect to organization detail page
       router.push(`/organizations/${id}`)
     } catch (err) {
@@ -342,6 +390,23 @@ function EditOrganizationContent() {
                       placeholder="https://linkedin.com/company/acme"
                       {...register('linkedin_url')}
                       disabled={submitting}
+                    />
+                  </div>
+
+                  {/* Tags Section */}
+                  <div className="space-y-3 border-t pt-6">
+                    <div>
+                      <h3 className="text-sm font-semibold">
+                        Tags (Optional)
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Add tags to categorize this organization
+                      </p>
+                    </div>
+                    <TagInput
+                      objectType="organization"
+                      selectedTags={selectedTags}
+                      onTagsChange={setSelectedTags}
                     />
                   </div>
 

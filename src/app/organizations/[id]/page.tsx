@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase'
 import { Organization } from '@/types/organization'
 import { PersonOrganization } from '@/types/person'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { Tag } from '@/lib/hooks/use-tags'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   person_first_name: string
@@ -24,6 +25,7 @@ function OrganizationDetailContent() {
 
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [persons, setPersons] = useState<PersonOrganizationWithDetails[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,6 +69,21 @@ function OrganizationDetailContent() {
               person_last_name: link.person.last_name,
             }))
           )
+        }
+
+        // Fetch tags
+        const { data: tagLinks, error: tagsError } = await supabase
+          .from('organization_tag')
+          .select('tag(*)')
+          .eq('organization_id', id)
+
+        if (tagsError) {
+          throw tagsError
+        }
+
+        if (tagLinks) {
+          const tagList = tagLinks.map((link: any) => link.tag).filter(Boolean)
+          setTags(tagList)
         }
       } catch (err) {
         const errorMessage =
@@ -183,6 +200,24 @@ function OrganizationDetailContent() {
                       View Company Profile
                       <ExternalLink className="h-4 w-4" />
                     </a>
+                  </div>
+                )}
+
+                {tags.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Tags
+                    </label>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <div
+                          key={tag.id}
+                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                        >
+                          {tag.name}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

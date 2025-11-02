@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { Person, PersonOrganization } from '@/types/person'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { Tag } from '@/lib/hooks/use-tags'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   organization_name: string
@@ -24,6 +25,7 @@ function PersonDetailContent() {
   const [organizations, setOrganizations] = useState<
     PersonOrganizationWithDetails[]
   >([])
+  const [tags, setTags] = useState<Tag[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -66,6 +68,21 @@ function PersonDetailContent() {
               organization_name: link.organization.name,
             }))
           )
+        }
+
+        // Fetch tags
+        const { data: tagLinks, error: tagsError } = await supabase
+          .from('person_tag')
+          .select('tag(*)')
+          .eq('person_id', id)
+
+        if (tagsError) {
+          throw tagsError
+        }
+
+        if (tagLinks) {
+          const tagList = tagLinks.map((link: any) => link.tag).filter(Boolean)
+          setTags(tagList)
         }
       } catch (err) {
         const errorMessage =
@@ -192,6 +209,24 @@ function PersonDetailContent() {
                         {person.postal_code && ` ${person.postal_code}`}
                       </p>
                       {person.country && <p className="text-sm">{person.country}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {tags.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Tags
+                    </label>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <div
+                          key={tag.id}
+                          className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                        >
+                          {tag.name}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
