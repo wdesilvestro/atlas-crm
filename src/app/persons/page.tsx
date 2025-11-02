@@ -96,6 +96,11 @@ function PersonsContent() {
       flex: 1,
       minWidth: 200,
       filterParams: { objectType: 'person' as const },
+      valueFormatter: (params: { value: any }) => {
+        if (!params.value || !Array.isArray(params.value)) return '-'
+        const tags = params.value as any[]
+        return tags.length === 0 ? '-' : tags.map((tag) => tag.name).join(', ')
+      },
       cellRenderer: (props: { data: Person }) => {
         const tags = props.data?.tags || []
         if (tags.length === 0) return <span className="text-gray-400">-</span>
