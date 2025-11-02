@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { UsersIcon, LogOut, ChevronDown } from "lucide-react"
+import { UsersIcon, Building2, LogOut, ChevronDown } from "lucide-react"
 
 import {
   Sidebar,
@@ -27,6 +27,11 @@ const navItems = [
     title: "Persons",
     url: "/persons",
     icon: UsersIcon,
+  },
+  {
+    title: "Organizations",
+    url: "/organizations",
+    icon: Building2,
   },
 ]
 
