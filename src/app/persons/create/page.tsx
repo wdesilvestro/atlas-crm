@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import Link from 'next/link'
@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, X } from 'lucide-react'
+import { Organization } from '@/types/organization'
 
 interface CreatePersonForm {
   first_name: string
@@ -21,11 +22,25 @@ interface CreatePersonForm {
   linkedin_url?: string
 }
 
+interface SelectedOrganization {
+  organization_id: string
+  role: string
+  organization_name: string
+}
+
 function CreatePersonContent() {
   const router = useRouter()
   const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [selectedOrganizations, setSelectedOrganizations] = useState<
+    SelectedOrganization[]
+  >([])
+  const [selectedOrgId, setSelectedOrgId] = useState<string>('')
+  const [selectedRole, setSelectedRole] = useState<string>('')
+  const [orgError, setOrgError] = useState<string | null>(null)
+
   const {
     register,
     handleSubmit,
@@ -37,6 +52,68 @@ function CreatePersonContent() {
       linkedin_url: '',
     },
   })
+
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        if (!user) return
+
+        const { data, error: fetchError } = await supabase
+          .from('organization')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('name', { ascending: true })
+
+        if (fetchError) throw fetchError
+        setOrganizations((data || []) as Organization[])
+      } catch (err) {
+        console.error('Error fetching organizations:', err)
+      }
+    }
+
+    fetchOrganizations()
+  }, [user])
+
+  const handleAddOrganization = () => {
+    setOrgError(null)
+
+    if (!selectedOrgId) {
+      setOrgError('Please select an organization')
+      return
+    }
+
+    if (!selectedRole.trim()) {
+      setOrgError('Role is required')
+      return
+    }
+
+    // Check if already added
+    if (selectedOrganizations.some((o) => o.organization_id === selectedOrgId)) {
+      setOrgError('This organization is already added')
+      return
+    }
+
+    const org = organizations.find((o) => o.id === selectedOrgId)
+    if (!org) return
+
+    setSelectedOrganizations([
+      ...selectedOrganizations,
+      {
+        organization_id: selectedOrgId,
+        role: selectedRole,
+        organization_name: org.name,
+      },
+    ])
+
+    setSelectedOrgId('')
+    setSelectedRole('')
+  }
+
+  const handleRemoveOrganization = (orgId: string) => {
+    setSelectedOrganizations(
+      selectedOrganizations.filter((o) => o.organization_id !== orgId)
+    )
+  }
 
   const onSubmit = async (data: CreatePersonForm) => {
     setLoading(true)
@@ -54,24 +131,46 @@ function CreatePersonContent() {
             first_name: data.first_name,
             last_name: data.last_name,
             linkedin_url: data.linkedin_url || null,
-            user_id: user.id,
           },
         ])
         .select()
 
       if (insertError) {
-        throw insertError
+        const errorMsg =
+          (insertError as any).message || JSON.stringify(insertError)
+        throw new Error(`Failed to create person: ${errorMsg}`)
       }
 
-      if (!result) {
+      if (!result || result.length === 0) {
         throw new Error('No data returned from insert')
+      }
+
+      const personId = result[0].id
+
+      // Add organization links if any
+      if (selectedOrganizations.length > 0) {
+        const linksToInsert = selectedOrganizations.map((org) => ({
+          person_id: personId,
+          organization_id: org.organization_id,
+          role: org.role,
+        }))
+
+        const { error: linkError } = await supabase
+          .from('person_organization')
+          .insert(linksToInsert)
+
+        if (linkError) {
+          const errorMsg =
+            (linkError as any).message || JSON.stringify(linkError)
+          throw new Error(`Failed to link organization: ${errorMsg}`)
+        }
       }
 
       // Redirect back to persons page
       router.push('/persons')
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to create person'
+        err instanceof Error ? err.message : JSON.stringify(err)
       setError(errorMessage)
       console.error('Error creating person:', err)
     } finally {
@@ -151,6 +250,107 @@ function CreatePersonContent() {
                       {...register('linkedin_url')}
                       disabled={loading}
                     />
+                  </div>
+
+                  {/* Organizations Section */}
+                  <div className="space-y-3 border-t pt-6">
+                    <div>
+                      <h3 className="text-sm font-semibold">
+                        Link to Organizations (Optional)
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Add this person to organizations with their role/title
+                      </p>
+                    </div>
+
+                    {orgError && (
+                      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                        {orgError}
+                      </div>
+                    )}
+
+                    <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="organization_select">Organization</Label>
+                        <select
+                          id="organization_select"
+                          value={selectedOrgId}
+                          onChange={(e) => setSelectedOrgId(e.target.value)}
+                          disabled={loading || organizations.length === 0}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">
+                            {organizations.length === 0
+                              ? 'No organizations available'
+                              : 'Select an organization'}
+                          </option>
+                          {organizations.map((org) => (
+                            <option key={org.id} value={org.id}>
+                              {org.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="role_input">
+                          Role / Title <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="role_input"
+                          placeholder="e.g., Chief Executive Officer, Developer, Manager"
+                          value={selectedRole}
+                          onChange={(e) => setSelectedRole(e.target.value)}
+                          disabled={loading}
+                        />
+                      </div>
+
+                      <Button
+                        type="button"
+                        onClick={handleAddOrganization}
+                        disabled={loading || !selectedOrgId}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Add Organization
+                      </Button>
+                    </div>
+
+                    {/* Selected Organizations List */}
+                    {selectedOrganizations.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">
+                          Selected Organizations ({selectedOrganizations.length})
+                        </p>
+                        <div className="space-y-2">
+                          {selectedOrganizations.map((org) => (
+                            <div
+                              key={org.organization_id}
+                              className="flex items-center justify-between rounded-lg border bg-card p-3"
+                            >
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {org.organization_name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {org.role}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemoveOrganization(org.organization_id)
+                                }
+                                disabled={loading}
+                                className="text-muted-foreground hover:text-destructive disabled:opacity-50"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex gap-3">

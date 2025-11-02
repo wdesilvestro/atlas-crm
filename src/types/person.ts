@@ -14,6 +14,15 @@ export interface PersonPhone {
   created_at: string
 }
 
+export interface PersonOrganization {
+  id: string
+  person_id: string
+  organization_id: string
+  role: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Person {
   id: string
   first_name: string
@@ -26,4 +35,5 @@ export interface Person {
 export interface PersonWithDetails extends Person {
   emails: PersonEmail[]
   phones: PersonPhone[]
+  organizations: PersonOrganization[]
 }
