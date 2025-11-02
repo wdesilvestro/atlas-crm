@@ -9,24 +9,18 @@ export interface TagFilterModel {
   selectedTagIds: string[]
 }
 
-interface TagFilterParams {
-  objectType: 'person' | 'organization'
-}
-
 interface TagFilterProps {
   model: TagFilterModel | null
   onModelChange: (model: TagFilterModel | null) => void
   api: any
-  filterParams?: TagFilterParams
 }
 
-export default function TagFilter({
+function TagFilterComponent({
   model,
   onModelChange,
   api,
-  filterParams,
-}: TagFilterProps) {
-  const objectType = filterParams?.objectType ?? 'person'
+  objectType,
+}: TagFilterProps & { objectType: 'person' | 'organization' }) {
   const { tags: allTags, loading, error } = useTags(objectType)
 
   const selectedTagIds = model?.selectedTagIds || []
@@ -37,19 +31,13 @@ export default function TagFilter({
         ? selectedTagIds.filter((id) => id !== tagId)
         : [...selectedTagIds, tagId]
 
-      console.log('Tag changed:', tagId)
-      console.log('New selected IDs:', newSelectedIds)
-
       if (newSelectedIds.length === 0) {
-        console.log('Clearing filter')
         onModelChange(null)
       } else {
-        console.log('Setting filter model with:', { selectedTagIds: newSelectedIds })
         onModelChange({ selectedTagIds: newSelectedIds })
       }
 
       // Tell ag-grid to re-apply the filter
-      console.log('Calling api.onFilterChanged()')
       api?.onFilterChanged?.()
     },
     [selectedTagIds, onModelChange, api]
@@ -87,4 +75,11 @@ export default function TagFilter({
       </div>
     </div>
   )
+}
+
+// Factory function to create filter component with objectType bound
+export function createTagFilter(objectType: 'person' | 'organization') {
+  return function BoundTagFilter(props: Omit<TagFilterProps, 'objectType'>) {
+    return <TagFilterComponent {...props} objectType={objectType} />
+  }
 }

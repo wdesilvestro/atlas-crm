@@ -14,9 +14,7 @@ import { useOrganizations } from '@/lib/hooks/use-organizations'
 import { Organization } from '@/types/organization'
 import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
-import TagFilterComponent, {
-  TagFilterModel,
-} from '@/components/TagFilterComponent'
+import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 
 function OrganizationsContent() {
   const router = useRouter()
@@ -108,7 +106,6 @@ function OrganizationsContent() {
       field: 'tags',
       flex: 1,
       minWidth: 200,
-      filterParams: { objectType: 'organization' as const },
       valueFormatter: (params: { value: any }) => {
         if (!params.value || !Array.isArray(params.value)) return '-'
         const tags = params.value as any[]
@@ -131,16 +128,13 @@ function OrganizationsContent() {
         )
       },
       filter: {
-        component: TagFilterComponent,
+        component: createTagFilter('organization'),
         handler: (params: any) => {
-          console.log('Filter handler initialized with params.model:', params.model)
           return {
             doesFilterPass: (
               filterParams: DoesFilterPassParams<Organization, any, TagFilterModel>
             ) => {
               const selectedTagIds = filterParams.model?.selectedTagIds || []
-              console.log('doesFilterPass called - selectedTagIds:', selectedTagIds)
-              console.log('doesFilterPass - filterParams.data:', filterParams.data)
 
               // If no tags selected, pass all rows
               if (selectedTagIds.length === 0) {
@@ -150,13 +144,11 @@ function OrganizationsContent() {
               // Get tags from the row
               const rowTags = filterParams.data?.tags || []
               const rowTagIds = rowTags.map((t: any) => t.id)
-              console.log('Filter handler - rowTags:', rowTags, 'rowTagIds:', rowTagIds)
 
               // Require the row to include every selected tag
               const result = selectedTagIds.every((tagId: string) =>
                 rowTagIds.includes(tagId)
               )
-              console.log('Filter result (matches all selected tags):', result)
               return result
             },
           }

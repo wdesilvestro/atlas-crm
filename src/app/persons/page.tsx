@@ -14,9 +14,7 @@ import { usePersons } from '@/lib/hooks/use-persons'
 import { Person } from '@/types/person'
 import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
-import TagFilterComponent, {
-  TagFilterModel,
-} from '@/components/TagFilterComponent'
+import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 
 function PersonsContent() {
   const router = useRouter()
@@ -95,7 +93,6 @@ function PersonsContent() {
       field: 'tags',
       flex: 1,
       minWidth: 200,
-      filterParams: { objectType: 'person' as const },
       valueFormatter: (params: { value: any }) => {
         if (!params.value || !Array.isArray(params.value)) return '-'
         const tags = params.value as any[]
@@ -118,16 +115,13 @@ function PersonsContent() {
         )
       },
       filter: {
-        component: TagFilterComponent,
+        component: createTagFilter('person'),
         handler: (params: any) => {
-          console.log('Filter handler initialized with params.model:', params.model)
           return {
             doesFilterPass: (
               filterParams: DoesFilterPassParams<Person, any, TagFilterModel>
             ) => {
               const selectedTagIds = filterParams.model?.selectedTagIds || []
-              console.log('doesFilterPass called - selectedTagIds:', selectedTagIds)
-              console.log('doesFilterPass - filterParams.data:', filterParams.data)
 
               // If no tags selected, pass all rows
               if (selectedTagIds.length === 0) {
@@ -137,13 +131,11 @@ function PersonsContent() {
               // Get tags from the row
               const rowTags = filterParams.data?.tags || []
               const rowTagIds = rowTags.map((t: any) => t.id)
-              console.log('Filter handler - rowTags:', rowTags, 'rowTagIds:', rowTagIds)
 
               // Require the row to include every selected tag
               const result = selectedTagIds.every((tagId: string) =>
                 rowTagIds.includes(tagId)
               )
-              console.log('Filter result (matches all selected tags):', result)
               return result
             },
           }
