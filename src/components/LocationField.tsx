@@ -5,18 +5,18 @@ import { Input } from '@/components/ui/input'
 import { useGoogleMapsApi } from '@/lib/hooks/use-google-maps-api'
 
 interface LocationData {
-  street_address: string
-  city: string
-  state_province: string
-  postal_code: string
-  country: string
-  formatted_address: string
-  place_id: string
+  street_address: string | null
+  city: string | null
+  state_province: string | null
+  postal_code: string | null
+  country: string | null
+  formatted_address: string | null
+  place_id: string | null
 }
 
 interface LocationFieldProps {
   value: Partial<LocationData>
-  onChange: (location: Partial<LocationData>) => void
+  onChange: (location: LocationData) => void
   placeholder?: string
   disabled?: boolean
 }
@@ -73,9 +73,9 @@ export function LocationField({
 
         // Extract location components from the place object
         const addressComponents = place.address_components || []
-        const locationData: Partial<LocationData> = {
+        const locationData: LocationData = {
           formatted_address: place.formatted_address,
-          place_id: place.place_id,
+          place_id: place.place_id || null,
           street_address: '',
           city: '',
           state_province: '',

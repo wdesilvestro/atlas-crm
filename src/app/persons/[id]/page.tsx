@@ -9,9 +9,11 @@ import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
-import { Person, PersonOrganization } from '@/types/person'
+import { Person, PersonOrganization, PersonAction } from '@/types/person'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Tag } from '@/lib/hooks/use-tags'
+import ActionLogForm from '@/components/ActionLogForm'
+import ActionsList from '@/components/ActionsList'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   organization_name: string
@@ -28,6 +30,7 @@ function PersonDetailContent() {
   const [tags, setTags] = useState<Tag[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [actionRefreshTrigger, setActionRefreshTrigger] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,7 +162,7 @@ function PersonDetailContent() {
               </p>
             </div>
 
-            <div className="max-w-2xl">
+            <div className="space-y-6 max-w-4xl">
               <div className="rounded-lg border bg-card p-6 shadow-sm space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -306,6 +309,13 @@ function PersonDetailContent() {
                   </Link>
                 </div>
               </div>
+
+              {/* Actions Section */}
+              <ActionLogForm
+                personId={id}
+                onActionCreated={() => setActionRefreshTrigger((prev) => prev + 1)}
+              />
+              <ActionsList personId={id} refreshTrigger={actionRefreshTrigger} />
             </div>
           </div>
         </div>

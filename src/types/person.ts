@@ -56,3 +56,50 @@ export interface PersonWithDetails extends Person {
   phones: PersonPhone[]
   organizations: PersonOrganization[]
 }
+
+// Action Types and Interfaces
+export type ActionType =
+  | 'linkedin_connection_request_sent'
+  | 'linkedin_connection_request_retracted'
+  | 'linkedin_message_sent'
+  | 'email_sent'
+  | 'email_received'
+
+// Additional data schema for each action type
+export interface LinkedInConnectionRequestSentData {
+  message?: string
+}
+
+export interface LinkedInConnectionRequestRetractedData {}
+
+export interface LinkedInMessageSentData {
+  message: string
+}
+
+export interface EmailSentData {
+  subject: string
+  body: string
+}
+
+export interface EmailReceivedData {
+  subject: string
+  body: string
+}
+
+export type ActionAdditionalData =
+  | LinkedInConnectionRequestSentData
+  | LinkedInConnectionRequestRetractedData
+  | LinkedInMessageSentData
+  | EmailSentData
+  | EmailReceivedData
+
+export interface PersonAction {
+  id: string
+  person_id: string
+  user_id: string
+  action_type: ActionType
+  occurred_at: string
+  additional_data: ActionAdditionalData
+  created_at: string
+  updated_at: string
+}
