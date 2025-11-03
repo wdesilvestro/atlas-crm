@@ -6,7 +6,7 @@ import { Providers } from "@/components/providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Atlas CRM",
+  title: `[${process.env.NODE_ENV === "production" ? "PROD" : "DEV"}] Atlas CRM`,
   description: "Customer Relationship Management System",
   icons: {
     icon: "/logo.webp",
