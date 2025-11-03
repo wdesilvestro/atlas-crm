@@ -3,7 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { UsersIcon, Building2, LogOut, ChevronDown, Tags as TagsIcon, UserCheck } from "lucide-react"
 
 import {
@@ -61,6 +61,32 @@ const navItems = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, signOut } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
+  const [hash, setHash] = React.useState("")
+
+  React.useEffect(() => {
+    const updateHash = () => {
+      if (typeof window !== "undefined") {
+        setHash(window.location.hash)
+      }
+    }
+
+    updateHash()
+    window.addEventListener("hashchange", updateHash)
+    return () => window.removeEventListener("hashchange", updateHash)
+  }, [])
+
+  const isSubItemActive = React.useCallback(
+    (url: string) => {
+      const [hrefPath, hrefHash] = url.split("#")
+      const pathMatches = pathname === hrefPath
+      if (!hrefHash) {
+        return pathMatches
+      }
+      return pathMatches && hash === `#${hrefHash}`
+    },
+    [pathname, hash]
+  )
 
   const handleLogout = async () => {
     try {
@@ -70,6 +96,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       console.error("Error logging out:", error)
     }
   }
+
+  const handleSubItemClick = React.useCallback((url: string) => {
+    const [, hrefHash] = url.split("#")
+    if (hrefHash) {
+      setHash(`#${hrefHash}`)
+    } else {
+      setHash("")
+    }
+  }, [])
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -99,7 +134,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             return (
               <React.Fragment key={item.url}>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.url || pathname.startsWith(`${item.url}/`)}
+                  >
                     <Link href={item.url}>
                       <Icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -110,8 +148,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuSub>
                     {item.submenu.map((subitem: any) => (
                       <SidebarMenuSubItem key={subitem.url}>
-                        <SidebarMenuButton asChild>
-                          <Link href={subitem.url}>
+                        <SidebarMenuButton asChild isActive={isSubItemActive(subitem.url)}>
+                          <Link href={subitem.url} onClick={() => handleSubItemClick(subitem.url)}>
                             <span>{subitem.title}</span>
                           </Link>
                         </SidebarMenuButton>
