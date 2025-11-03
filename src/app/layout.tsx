@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Atlas CRM",
   description: "Customer Relationship Management System",
+  icons: {
+    icon: "/logo.webp",
+  },
 }
 
 export default function RootLayout({

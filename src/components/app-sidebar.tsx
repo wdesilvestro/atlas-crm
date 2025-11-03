@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { UsersIcon, Building2, LogOut, ChevronDown, Tags as TagsIcon } from "lucide-react"
+import { UsersIcon, Building2, LogOut, ChevronDown, Tags as TagsIcon, UserCheck } from "lucide-react"
 
 import {
   Sidebar,
@@ -34,6 +35,11 @@ const navItems = [
     title: "Organizations",
     url: "/organizations",
     icon: Building2,
+  },
+  {
+    title: "Relationship Owners",
+    url: "/relationship-owners",
+    icon: UserCheck,
   },
   {
     title: "Tags",
@@ -72,9 +78,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link href="/persons" className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
-                  AC
-                </div>
+                <Image
+                  src="/logo.webp"
+                  alt="Atlas CRM logo"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-lg object-cover"
+                  priority
+                />
                 <span className="text-base font-semibold">Atlas CRM</span>
               </Link>
             </SidebarMenuButton>
