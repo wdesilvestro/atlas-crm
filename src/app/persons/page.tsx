@@ -124,14 +124,21 @@ function PersonsContent() {
       flex: 1,
       minWidth: 120,
       cellRenderer: (props: { value: string }) => {
-        const isActive = props.value === 'Active'
+        const getStatusStyle = (status: string) => {
+          switch (status) {
+            case 'Active':
+              return 'bg-green-100 text-green-800'
+            case 'Inactive':
+              return 'bg-gray-100 text-gray-800'
+            case 'Needs Qualification':
+              return 'bg-yellow-100 text-yellow-800'
+            default:
+              return 'bg-gray-100 text-gray-800'
+          }
+        }
         return (
           <div
-            className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap inline-block ${
-              isActive
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-100 text-gray-800'
-            }`}
+            className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap inline-block ${getStatusStyle(props.value)}`}
           >
             {props.value}
           </div>

@@ -25,7 +25,7 @@ interface CreateOrganizationForm {
   name: string
   website?: string
   linkedin_url?: string
-  status: 'Active' | 'Inactive'
+  status: 'Active' | 'Inactive' | 'Needs Qualification'
 }
 
 function CreateOrganizationContent() {
@@ -222,6 +222,7 @@ function CreateOrganizationContent() {
                     >
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
+                      <option value="Needs Qualification">Needs Qualification</option>
                     </select>
                   </div>
 

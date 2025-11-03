@@ -26,7 +26,7 @@ interface CreatePersonForm {
   first_name: string
   last_name: string
   linkedin_url?: string
-  status: 'Active' | 'Inactive'
+  status: 'Active' | 'Inactive' | 'Needs Qualification'
 }
 
 interface SelectedOrganization {
@@ -340,6 +340,7 @@ function CreatePersonContent() {
                     >
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
+                      <option value="Needs Qualification">Needs Qualification</option>
                     </select>
                   </div>
 

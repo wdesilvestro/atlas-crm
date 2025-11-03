@@ -12,7 +12,7 @@ interface StatusFilterProps {
   api: any
 }
 
-const STATUS_OPTIONS = ['Active', 'Inactive']
+const STATUS_OPTIONS = ['Active', 'Inactive', 'Needs Qualification']
 
 function StatusFilterComponent({
   model,
