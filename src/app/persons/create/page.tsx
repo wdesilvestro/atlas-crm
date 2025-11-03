@@ -19,6 +19,7 @@ import { LocationField } from '@/components/LocationField'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
+import { RelationshipOwner } from '@/types/relationship-owner'
 
 interface CreatePersonForm {
   first_name: string
@@ -39,6 +40,8 @@ function CreatePersonContent() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [relationshipOwners, setRelationshipOwners] = useState<RelationshipOwner[]>([])
+  const [selectedRelationshipOwnerId, setSelectedRelationshipOwnerId] = useState<string>('')
   const [selectedOrganizations, setSelectedOrganizations] = useState<
     SelectedOrganization[]
   >([])
@@ -79,24 +82,35 @@ function CreatePersonContent() {
   })
 
   useEffect(() => {
-    const fetchOrganizations = async () => {
+    const fetchData = async () => {
       try {
         if (!user) return
 
-        const { data, error: fetchError } = await supabase
+        // Fetch organizations
+        const { data: orgsData, error: orgsError } = await supabase
           .from('organization')
           .select('*')
           .eq('user_id', user.id)
           .order('name', { ascending: true })
 
-        if (fetchError) throw fetchError
-        setOrganizations((data || []) as Organization[])
+        if (orgsError) throw orgsError
+        setOrganizations((orgsData || []) as Organization[])
+
+        // Fetch relationship owners
+        const { data: ownersData, error: ownersError } = await supabase
+          .from('relationship_owner')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('name', { ascending: true })
+
+        if (ownersError) throw ownersError
+        setRelationshipOwners((ownersData || []) as RelationshipOwner[])
       } catch (err) {
-        console.error('Error fetching organizations:', err)
+        console.error('Error fetching data:', err)
       }
     }
 
-    fetchOrganizations()
+    fetchData()
   }, [user])
 
   const handleAddOrganization = () => {
@@ -166,6 +180,7 @@ function CreatePersonContent() {
             formatted_address: location.formatted_address,
             place_id: location.place_id,
             notes: notes || null,
+            relationship_owner_id: selectedRelationshipOwnerId || null,
           },
         ])
         .select()
@@ -315,6 +330,24 @@ function CreatePersonContent() {
                     >
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="relationship_owner_id">Relationship Owner (Optional)</Label>
+                    <select
+                      id="relationship_owner_id"
+                      value={selectedRelationshipOwnerId}
+                      onChange={(e) => setSelectedRelationshipOwnerId(e.target.value)}
+                      disabled={loading}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">None</option>
+                      {relationshipOwners.map((owner) => (
+                        <option key={owner.id} value={owner.id}>
+                          {owner.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

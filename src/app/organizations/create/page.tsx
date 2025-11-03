@@ -17,6 +17,8 @@ import { ArrowLeft } from 'lucide-react'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
+import { RelationshipOwner } from '@/types/relationship-owner'
+import { useEffect } from 'react'
 
 interface CreateOrganizationForm {
   name: string
@@ -32,6 +34,8 @@ function CreateOrganizationContent() {
   const [loading, setLoading] = useState(false)
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
+  const [relationshipOwners, setRelationshipOwners] = useState<RelationshipOwner[]>([])
+  const [selectedRelationshipOwnerId, setSelectedRelationshipOwnerId] = useState<string>('')
   const {
     register,
     handleSubmit,
@@ -44,6 +48,27 @@ function CreateOrganizationContent() {
       status: 'Active',
     },
   })
+
+  useEffect(() => {
+    const fetchRelationshipOwners = async () => {
+      try {
+        if (!user) return
+
+        const { data, error: fetchError } = await supabase
+          .from('relationship_owner')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('name', { ascending: true })
+
+        if (fetchError) throw fetchError
+        setRelationshipOwners((data || []) as RelationshipOwner[])
+      } catch (err) {
+        console.error('Error fetching relationship owners:', err)
+      }
+    }
+
+    fetchRelationshipOwners()
+  }, [user])
 
   const onSubmit = async (data: CreateOrganizationForm) => {
     setLoading(true)
@@ -64,6 +89,7 @@ function CreateOrganizationContent() {
             user_id: user.id,
             status: data.status,
             notes: notes || null,
+            relationship_owner_id: selectedRelationshipOwnerId || null,
           },
         ])
         .select()
@@ -186,6 +212,24 @@ function CreateOrganizationContent() {
                     >
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="relationship_owner_id">Relationship Owner (Optional)</Label>
+                    <select
+                      id="relationship_owner_id"
+                      value={selectedRelationshipOwnerId}
+                      onChange={(e) => setSelectedRelationshipOwnerId(e.target.value)}
+                      disabled={loading}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">None</option>
+                      {relationshipOwners.map((owner) => (
+                        <option key={owner.id} value={owner.id}>
+                          {owner.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

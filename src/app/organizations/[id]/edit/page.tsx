@@ -19,6 +19,7 @@ import { useAuth } from '@/lib/auth-context'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
+import { RelationshipOwner } from '@/types/relationship-owner'
 
 interface EditOrganizationForm {
   name: string
@@ -50,6 +51,8 @@ function EditOrganizationContent() {
   const [personError, setPersonError] = useState<string | null>(null)
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
+  const [relationshipOwners, setRelationshipOwners] = useState<RelationshipOwner[]>([])
+  const [selectedRelationshipOwnerId, setSelectedRelationshipOwnerId] = useState<string>('')
 
   const {
     register,
@@ -93,6 +96,7 @@ function EditOrganizationContent() {
           status: orgData.status,
         })
         setNotes(orgData.notes || '')
+        setSelectedRelationshipOwnerId(orgData.relationship_owner_id || '')
 
         // Fetch organization's person links
         const { data: personLinks, error: linksError } = await supabase
@@ -137,6 +141,18 @@ function EditOrganizationContent() {
 
         if (personsError) throw personsError
         setPersons((personsData || []) as Person[])
+
+        // Fetch relationship owners
+        if (user) {
+          const { data: ownersData, error: ownersError } = await supabase
+            .from('relationship_owner')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('name', { ascending: true })
+
+          if (ownersError) throw ownersError
+          setRelationshipOwners((ownersData || []) as RelationshipOwner[])
+        }
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to fetch organization'
@@ -209,6 +225,7 @@ function EditOrganizationContent() {
           linkedin_url: data.linkedin_url || null,
           status: data.status,
           notes: notes || null,
+          relationship_owner_id: selectedRelationshipOwnerId || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -411,6 +428,24 @@ function EditOrganizationContent() {
                     >
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="relationship_owner_id">Relationship Owner (Optional)</Label>
+                    <select
+                      id="relationship_owner_id"
+                      value={selectedRelationshipOwnerId}
+                      onChange={(e) => setSelectedRelationshipOwnerId(e.target.value)}
+                      disabled={submitting}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">None</option>
+                      {relationshipOwners.map((owner) => (
+                        <option key={owner.id} value={owner.id}>
+                          {owner.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

@@ -20,6 +20,7 @@ import { LocationField } from '@/components/LocationField'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
+import { RelationshipOwner } from '@/types/relationship-owner'
 
 interface EditPersonForm {
   first_name: string
@@ -44,6 +45,8 @@ function EditPersonContent() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [relationshipOwners, setRelationshipOwners] = useState<RelationshipOwner[]>([])
+  const [selectedRelationshipOwnerId, setSelectedRelationshipOwnerId] = useState<string>('')
   const [selectedOrganizations, setSelectedOrganizations] = useState<
     SelectedOrganization[]
   >([])
@@ -122,6 +125,7 @@ function EditPersonContent() {
           place_id: personData.place_id,
         })
         setNotes(personData.notes || '')
+        setSelectedRelationshipOwnerId(personData.relationship_owner_id || '')
 
         // Fetch person's organization links
         const { data: orgLinks, error: linksError } = await supabase
@@ -157,7 +161,7 @@ function EditPersonContent() {
           setSelectedTags(tags)
         }
 
-        // Fetch organizations for the current user
+        // Fetch organizations and relationship owners for the current user
         if (user) {
           const { data: orgsData, error: orgsError } = await supabase
             .from('organization')
@@ -167,6 +171,15 @@ function EditPersonContent() {
 
           if (orgsError) throw orgsError
           setOrganizations((orgsData || []) as Organization[])
+
+          const { data: ownersData, error: ownersError } = await supabase
+            .from('relationship_owner')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('name', { ascending: true })
+
+          if (ownersError) throw ownersError
+          setRelationshipOwners((ownersData || []) as RelationshipOwner[])
         }
       } catch (err) {
         const errorMessage =
@@ -248,6 +261,7 @@ function EditPersonContent() {
           formatted_address: location.formatted_address,
           place_id: location.place_id,
           notes: notes || null,
+          relationship_owner_id: selectedRelationshipOwnerId || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -456,6 +470,24 @@ function EditPersonContent() {
                     >
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="relationship_owner_id">Relationship Owner (Optional)</Label>
+                    <select
+                      id="relationship_owner_id"
+                      value={selectedRelationshipOwnerId}
+                      onChange={(e) => setSelectedRelationshipOwnerId(e.target.value)}
+                      disabled={submitting}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">None</option>
+                      {relationshipOwners.map((owner) => (
+                        <option key={owner.id} value={owner.id}>
+                          {owner.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

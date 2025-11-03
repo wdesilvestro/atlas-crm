@@ -17,6 +17,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
 import { createFollowUpReminderFilter, FollowUpReminderFilterModel } from '@/components/FollowUpReminderFilterComponent'
+import { createRelationshipOwnerFilter, RelationshipOwnerFilterModel } from '@/components/RelationshipOwnerFilterComponent'
 import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react'
 import type { GridReadyEvent, GridApi } from 'ag-grid-community'
 
@@ -125,6 +126,41 @@ function PersonsContent() {
               const selectedStatus = filterParams.model?.selectedStatus
               if (!selectedStatus) return true
               return filterParams.data?.status === selectedStatus
+            },
+          }
+        },
+      },
+    },
+    {
+      field: 'relationship_owner',
+      headerName: 'Relationship Owner',
+      flex: 1,
+      minWidth: 150,
+      valueGetter: (params: { data: Person }) => {
+        return params.data?.relationship_owner?.name || '-'
+      },
+      cellRenderer: (props: { data: Person }) => {
+        const owner = props.data?.relationship_owner
+        if (!owner) return <span className="text-gray-400">-</span>
+        return <span>{owner.name}</span>
+      },
+      filter: {
+        component: createRelationshipOwnerFilter(),
+        handler: (params: any) => {
+          return {
+            doesFilterPass: (
+              filterParams: DoesFilterPassParams<Person, any, RelationshipOwnerFilterModel>
+            ) => {
+              const selectedOwnerId = filterParams.model?.selectedOwnerId
+              if (!selectedOwnerId) return true
+
+              // Handle "none" option (no owner assigned)
+              if (selectedOwnerId === 'none') {
+                return !filterParams.data?.relationship_owner_id
+              }
+
+              // Handle specific owner selection
+              return filterParams.data?.relationship_owner_id === selectedOwnerId
             },
           }
         },

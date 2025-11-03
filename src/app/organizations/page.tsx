@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
+import { createRelationshipOwnerFilter, RelationshipOwnerFilterModel } from '@/components/RelationshipOwnerFilterComponent'
 import type { GridReadyEvent, GridApi } from 'ag-grid-community'
 
 function OrganizationsContent() {
@@ -117,6 +118,41 @@ function OrganizationsContent() {
               const selectedStatus = filterParams.model?.selectedStatus
               if (!selectedStatus) return true
               return filterParams.data?.status === selectedStatus
+            },
+          }
+        },
+      },
+    },
+    {
+      field: 'relationship_owner',
+      headerName: 'Relationship Owner',
+      flex: 1,
+      minWidth: 150,
+      valueGetter: (params: { data: Organization }) => {
+        return params.data?.relationship_owner?.name || '-'
+      },
+      cellRenderer: (props: { data: Organization }) => {
+        const owner = props.data?.relationship_owner
+        if (!owner) return <span className="text-gray-400">-</span>
+        return <span>{owner.name}</span>
+      },
+      filter: {
+        component: createRelationshipOwnerFilter(),
+        handler: (params: any) => {
+          return {
+            doesFilterPass: (
+              filterParams: DoesFilterPassParams<Organization, any, RelationshipOwnerFilterModel>
+            ) => {
+              const selectedOwnerId = filterParams.model?.selectedOwnerId
+              if (!selectedOwnerId) return true
+
+              // Handle "none" option (no owner assigned)
+              if (selectedOwnerId === 'none') {
+                return !filterParams.data?.relationship_owner_id
+              }
+
+              // Handle specific owner selection
+              return filterParams.data?.relationship_owner_id === selectedOwnerId
             },
           }
         },

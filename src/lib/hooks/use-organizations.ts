@@ -14,7 +14,7 @@ export function useOrganizations() {
     try {
       const { data, error: fetchError } = await supabase
         .from('organization')
-        .select('*')
+        .select('*, relationship_owner(*)')
         .order('created_at', { ascending: false })
 
       if (fetchError) {

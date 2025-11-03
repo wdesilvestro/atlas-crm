@@ -32,6 +32,14 @@ export interface PersonTag {
   updated_at: string
 }
 
+export interface RelationshipOwner {
+  id: string
+  user_id: string
+  name: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Person {
   id: string
   user_id: string
@@ -47,9 +55,11 @@ export interface Person {
   place_id: string | null
   status: 'Active' | 'Inactive'
   notes: string | null
+  relationship_owner_id: string | null
   created_at: string
   updated_at: string
   tags?: PersonTag[]
+  relationship_owner?: RelationshipOwner
   follow_up_reminder_status?: 'action_required' | 'awaiting_response' | 'no_follow_up_needed'
 }
 

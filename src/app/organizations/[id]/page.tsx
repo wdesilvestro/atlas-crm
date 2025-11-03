@@ -38,7 +38,7 @@ function OrganizationDetailContent() {
       try {
         const { data, error: fetchError } = await supabase
           .from('organization')
-          .select('*')
+          .select('*, relationship_owner(*)')
           .eq('id', id)
           .single()
 
@@ -220,6 +220,15 @@ function OrganizationDetailContent() {
                     </div>
                   </div>
                 </div>
+
+                {organization.relationship_owner && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Relationship Owner
+                    </label>
+                    <p className="mt-2 text-lg font-medium">{organization.relationship_owner.name}</p>
+                  </div>
+                )}
 
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">

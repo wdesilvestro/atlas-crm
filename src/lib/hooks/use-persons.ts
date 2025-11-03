@@ -15,7 +15,7 @@ export function usePersons() {
     try {
       const { data, error: fetchError } = await supabase
         .from('person')
-        .select('*')
+        .select('*, relationship_owner(*)')
         .order('created_at', { ascending: false })
 
       if (fetchError) {
