@@ -120,11 +120,21 @@ export interface PersonAction {
   id: string
   person_id: string
   user_id: string
+  user_email?: string // Email of the user who logged the action
+  user_display_name?: string // Custom display name of the user who logged the action
   action_type: ActionType
   occurred_at: string
   additional_data: ActionAdditionalData
   follow_up_reminder_days: number | null
   follow_up_reminder_date: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface UserDisplayName {
+  id: string
+  user_id: string
+  display_name: string
   created_at: string
   updated_at: string
 }

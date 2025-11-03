@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users } from 'lucide-react'
+import { Users, UserCog } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Sidebar() {
@@ -13,6 +13,11 @@ export function Sidebar() {
       href: '/persons',
       label: 'Persons',
       icon: Users,
+    },
+    {
+      href: '/users',
+      label: 'Users',
+      icon: UserCog,
     },
   ]
 

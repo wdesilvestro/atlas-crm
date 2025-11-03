@@ -58,7 +58,7 @@ export default function ActionsList({ personId, refreshTrigger = 0 }: ActionsLis
     setIsLoading(true)
     try {
       const { data, error } = await supabase
-        .from('person_action')
+        .from('person_action_with_user')
         .select('*')
         .eq('person_id', personId)
         .order('occurred_at', { ascending: false })
@@ -217,11 +217,18 @@ export default function ActionsList({ personId, refreshTrigger = 0 }: ActionsLis
               return (
                 <div key={action.id} className="border rounded-lg p-4 space-y-2 hover:bg-muted/50 transition-colors">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <Badge className={ACTION_TYPE_COLORS[action.action_type]}>
-                        {ACTION_TYPE_LABELS[action.action_type]}
-                      </Badge>
-                      <time className="text-sm text-muted-foreground">{formatDate(action.occurred_at)}</time>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <Badge className={ACTION_TYPE_COLORS[action.action_type]}>
+                          {ACTION_TYPE_LABELS[action.action_type]}
+                        </Badge>
+                        <time className="text-sm text-muted-foreground">{formatDate(action.occurred_at)}</time>
+                      </div>
+                      {(action.user_display_name || action.user_email) && (
+                        <p className="text-xs text-muted-foreground italic pl-2">
+                          Logged by {action.user_display_name || action.user_email}
+                        </p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"

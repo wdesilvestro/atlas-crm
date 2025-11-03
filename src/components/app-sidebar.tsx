@@ -4,7 +4,7 @@ import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { UsersIcon, Building2, LogOut, ChevronDown, Tags as TagsIcon, UserCheck } from "lucide-react"
+import { UsersIcon, Building2, LogOut, ChevronDown, Tags as TagsIcon, UserCheck, UserCog } from "lucide-react"
 
 import {
   Sidebar,
@@ -40,6 +40,11 @@ const navItems = [
     title: "Relationship Owners",
     url: "/relationship-owners",
     icon: UserCheck,
+  },
+  {
+    title: "Users",
+    url: "/users",
+    icon: UserCog,
   },
   {
     title: "Tags",
