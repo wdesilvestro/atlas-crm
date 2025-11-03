@@ -13,14 +13,38 @@ import { Plus, Trash2, Eye, Pencil, ExternalLink } from 'lucide-react'
 import { useOrganizations } from '@/lib/hooks/use-organizations'
 import { Organization } from '@/types/organization'
 import { supabase } from '@/lib/supabase'
-import { useState } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
+import type { GridReadyEvent, GridApi } from 'ag-grid-community'
 
 function OrganizationsContent() {
   const router = useRouter()
   const { organizations, loading, error, refetch } = useOrganizations()
   const [deleting, setDeleting] = useState<string | null>(null)
+  const gridApiRef = useRef<GridApi | null>(null)
+  const filterAppliedRef = useRef(false)
+
+  const onGridReady = useCallback((params: GridReadyEvent) => {
+    gridApiRef.current = params.api
+  }, [])
+
+  // Apply filter after data is loaded
+  useEffect(() => {
+    if (!loading && organizations.length > 0 && gridApiRef.current && !filterAppliedRef.current) {
+      // Use setTimeout to ensure filter component is fully initialized
+      setTimeout(() => {
+        const filterModel = {
+          status: {
+            selectedStatus: 'Active'
+          }
+        }
+
+        gridApiRef.current?.setFilterModel(filterModel)
+        filterAppliedRef.current = true
+      }, 100)
+    }
+  }, [loading, organizations])
 
   const handleViewOrganization = (id: string) => {
     router.push(`/organizations/${id}`)
@@ -285,6 +309,7 @@ function OrganizationsContent() {
                   paginationPageSize={100}
                   theme={themeQuartz}
                   enableFilterHandlers={true}
+                  onGridReady={onGridReady}
                 />
               </div>
             </div>

@@ -13,16 +13,40 @@ import { Plus, Trash2, Eye, Pencil } from 'lucide-react'
 import { usePersons } from '@/lib/hooks/use-persons'
 import { Person } from '@/types/person'
 import { supabase } from '@/lib/supabase'
-import { useState } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
 import { createFollowUpReminderFilter, FollowUpReminderFilterModel } from '@/components/FollowUpReminderFilterComponent'
 import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react'
+import type { GridReadyEvent, GridApi } from 'ag-grid-community'
 
 function PersonsContent() {
   const router = useRouter()
   const { persons, loading, error, refetch } = usePersons()
   const [deleting, setDeleting] = useState<string | null>(null)
+  const gridApiRef = useRef<GridApi | null>(null)
+  const filterAppliedRef = useRef(false)
+
+  const onGridReady = useCallback((params: GridReadyEvent) => {
+    gridApiRef.current = params.api
+  }, [])
+
+  // Apply filter after data is loaded
+  useEffect(() => {
+    if (!loading && persons.length > 0 && gridApiRef.current && !filterAppliedRef.current) {
+      // Use setTimeout to ensure filter component is fully initialized
+      setTimeout(() => {
+        const filterModel = {
+          status: {
+            selectedStatus: 'Active'
+          }
+        }
+
+        gridApiRef.current?.setFilterModel(filterModel)
+        filterAppliedRef.current = true
+      }, 100)
+    }
+  }, [loading, persons])
 
   const handleViewPerson = (id: string) => {
     router.push(`/persons/${id}`)
@@ -344,6 +368,7 @@ function PersonsContent() {
                   paginationPageSize={100}
                   theme={themeQuartz}
                   enableFilterHandlers={true}
+                  onGridReady={onGridReady}
                 />
               </div>
             </div>
