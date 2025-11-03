@@ -22,6 +22,8 @@ import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
 import { RelationshipOwner } from '@/types/relationship-owner'
 import PhotoUpload from '@/components/PhotoUpload'
+import { OrganizationForm } from '@/components/OrganizationForm'
+import { Plus } from 'lucide-react'
 
 interface EditPersonForm {
   first_name: string
@@ -74,6 +76,7 @@ function EditPersonContent() {
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
   const [photo, setPhoto] = useState<string | null>(null)
+  const [showInlineOrgForm, setShowInlineOrgForm] = useState(false)
 
   const {
     register,
@@ -244,11 +247,69 @@ function EditPersonContent() {
     )
   }
 
+  const handleInlineOrgSuccess = async (orgId: string, orgName: string) => {
+    // Refresh organizations list
+    try {
+      if (!user) return
+
+      const { data: orgsData, error: orgsError } = await supabase
+        .from('organization')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name', { ascending: true })
+
+      if (orgsError) throw orgsError
+      setOrganizations((orgsData || []) as Organization[])
+
+      // Auto-select the newly created organization
+      setSelectedOrgId(orgId)
+
+      // Close the inline form
+      setShowInlineOrgForm(false)
+    } catch (err) {
+      console.error('Error refreshing organizations:', err)
+    }
+  }
+
   const onSubmit = async (data: EditPersonForm) => {
     setSubmitting(true)
     setSubmitError(null)
+    setOrgError(null)
 
     try {
+      // Auto-add pending organization if either field is filled
+      let finalOrganizations = [...selectedOrganizations]
+      if (selectedOrgId || selectedRole.trim()) {
+        // Validate: both fields must be filled if either is filled
+        if (!selectedOrgId) {
+          setOrgError('Please select an organization')
+          setSubmitting(false)
+          return
+        }
+
+        if (!selectedRole.trim()) {
+          setOrgError('Role is required')
+          setSubmitting(false)
+          return
+        }
+
+        // Check if already added
+        if (!selectedOrganizations.some((o) => o.organization_id === selectedOrgId)) {
+          const org = organizations.find((o) => o.id === selectedOrgId)
+          if (org) {
+            finalOrganizations.push({
+              id: crypto.randomUUID(),
+              person_id: id,
+              organization_id: selectedOrgId,
+              role: selectedRole,
+              organization_name: org.name,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+          }
+        }
+      }
+
       const { error: updateError } = await supabase
         .from('person')
         .update({
@@ -290,8 +351,8 @@ function EditPersonContent() {
       }
 
       // Add the updated organization links
-      if (selectedOrganizations.length > 0) {
-        const linksToInsert = selectedOrganizations.map((org) => ({
+      if (finalOrganizations.length > 0) {
+        const linksToInsert = finalOrganizations.map((org) => ({
           person_id: id,
           organization_id: org.organization_id,
           role: org.role,
@@ -410,7 +471,7 @@ function EditPersonContent() {
               </p>
             </div>
 
-            <div className="max-w-2xl">
+            <div className={showInlineOrgForm ? "grid grid-cols-1 lg:grid-cols-2 gap-6" : "max-w-2xl"}>
               <div className="rounded-lg border bg-card p-6 shadow-sm">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   {submitError && (
@@ -560,7 +621,19 @@ function EditPersonContent() {
                     {/* Add Organization Form */}
                     <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
                       <div className="space-y-2">
-                        <Label htmlFor="organization_select">Organization</Label>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="organization_select">Organization</Label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowInlineOrgForm(!showInlineOrgForm)}
+                            className="h-8 text-xs"
+                          >
+                            <Plus className="mr-1 h-3 w-3" />
+                            {showInlineOrgForm ? 'Hide Form' : 'Create New'}
+                          </Button>
+                        </div>
                         <select
                           id="organization_select"
                           value={selectedOrgId}
@@ -663,6 +736,23 @@ function EditPersonContent() {
                   </div>
                 </form>
               </div>
+
+              {/* Inline Organization Creation Form */}
+              {showInlineOrgForm && (
+                <div className="rounded-lg border bg-card p-6 shadow-sm">
+                  <div className="mb-4">
+                    <h2 className="text-xl font-bold tracking-tight">Create Organization</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Fill out the form to create a new organization
+                    </p>
+                  </div>
+                  <OrganizationForm
+                    onSuccess={handleInlineOrgSuccess}
+                    onCancel={() => setShowInlineOrgForm(false)}
+                    submitButtonText="Create & Select"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
