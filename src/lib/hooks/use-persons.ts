@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Person } from '@/types/person'
+import { getFollowUpReminderStatus } from '@/lib/follow-up-reminder'
 
 export function usePersons() {
   const [persons, setPersons] = useState<Person[]>([])
@@ -50,7 +51,18 @@ export function usePersons() {
           tags: tagsMap.get(person.id) || [],
         }))
 
-        setPersons(personsWithTags)
+        // Fetch follow-up reminder status for each person
+        const personsWithFollowUp = await Promise.all(
+          personsWithTags.map(async (person) => {
+            const follow_up_reminder_status = await getFollowUpReminderStatus(person.id)
+            return {
+              ...person,
+              follow_up_reminder_status,
+            }
+          })
+        )
+
+        setPersons(personsWithFollowUp)
       } else {
         setPersons(data || [])
       }

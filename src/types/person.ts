@@ -49,6 +49,7 @@ export interface Person {
   created_at: string
   updated_at: string
   tags?: PersonTag[]
+  follow_up_reminder_status?: 'action_required' | 'awaiting_response' | 'no_follow_up_needed'
 }
 
 export interface PersonWithDetails extends Person {

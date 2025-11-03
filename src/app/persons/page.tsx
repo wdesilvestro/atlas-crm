@@ -16,6 +16,8 @@ import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
+import { createFollowUpReminderFilter, FollowUpReminderFilterModel } from '@/components/FollowUpReminderFilterComponent'
+import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react'
 
 function PersonsContent() {
   const router = useRouter()
@@ -99,6 +101,76 @@ function PersonsContent() {
               const selectedStatus = filterParams.model?.selectedStatus
               if (!selectedStatus) return true
               return filterParams.data?.status === selectedStatus
+            },
+          }
+        },
+      },
+    },
+    {
+      field: 'follow_up_reminder_status',
+      headerName: 'Follow-up Reminder',
+      flex: 1,
+      minWidth: 160,
+      cellRenderer: (props: { value: string | undefined }) => {
+        const status = props.value
+        if (!status) return <span className="text-gray-400">-</span>
+
+        const getConfig = (s: string) => {
+          switch (s) {
+            case 'action_required':
+              return {
+                bg: 'bg-orange-50',
+                border: 'border-l-2 border-orange-400',
+                text: 'text-orange-900',
+                label: 'Action Required',
+                icon: <AlertCircle className="h-4 w-4 text-orange-600 flex-shrink-0" />,
+              }
+            case 'awaiting_response':
+              return {
+                bg: 'bg-blue-50',
+                border: 'border-l-2 border-blue-400',
+                text: 'text-blue-900',
+                label: 'Awaiting Response',
+                icon: <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />,
+              }
+            case 'no_follow_up_needed':
+              return {
+                bg: 'bg-gray-50',
+                border: 'border-l-2 border-gray-400',
+                text: 'text-gray-900',
+                label: 'No Follow-up',
+                icon: <CheckCircle2 className="h-4 w-4 text-gray-600 flex-shrink-0" />,
+              }
+            default:
+              return {
+                bg: 'bg-gray-50',
+                border: 'border-l-2 border-gray-400',
+                text: 'text-gray-900',
+                label: 'Unknown',
+                icon: <CheckCircle2 className="h-4 w-4 text-gray-600 flex-shrink-0" />,
+              }
+          }
+        }
+
+        const config = getConfig(status)
+
+        return (
+          <div className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap inline-flex items-center gap-2 ${config.bg} ${config.text} ${config.border}`}>
+            {config.icon}
+            <span>{config.label}</span>
+          </div>
+        )
+      },
+      filter: {
+        component: createFollowUpReminderFilter(),
+        handler: (params: any) => {
+          return {
+            doesFilterPass: (
+              filterParams: DoesFilterPassParams<Person, any, FollowUpReminderFilterModel>
+            ) => {
+              const selectedStatus = filterParams.model?.selectedStatus
+              if (!selectedStatus) return true
+              return filterParams.data?.follow_up_reminder_status === selectedStatus
             },
           }
         },
