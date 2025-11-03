@@ -366,7 +366,7 @@ function CreatePersonContent() {
                     <NotesEditor
                       value={notes}
                       onChange={setNotes}
-                      placeholder="Add background information, key talking points, or reminders."
+                      placeholder=""
                       className={loading ? 'pointer-events-none opacity-60' : undefined}
                     />
                   </div>

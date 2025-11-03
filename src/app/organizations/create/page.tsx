@@ -248,7 +248,7 @@ function CreateOrganizationContent() {
                     <NotesEditor
                       value={notes}
                       onChange={setNotes}
-                      placeholder="Capture account history, partnership details, or follow-up notes."
+                      placeholder=""
                       className={loading ? 'pointer-events-none opacity-60' : undefined}
                     />
                   </div>
