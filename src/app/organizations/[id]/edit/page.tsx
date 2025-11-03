@@ -466,7 +466,7 @@ function EditOrganizationContent() {
                     <NotesEditor
                       value={notes}
                       onChange={setNotes}
-                      placeholder="Update account history, partnership details, or follow-up notes."
+                      placeholder=""
                       className={submitting ? 'pointer-events-none opacity-60' : undefined}
                     />
                   </div>

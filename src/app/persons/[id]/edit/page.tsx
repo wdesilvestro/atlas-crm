@@ -569,7 +569,7 @@ function EditPersonContent() {
                     <NotesEditor
                       value={notes}
                       onChange={setNotes}
-                      placeholder="Update background information, key talking points, or reminders."
+                      placeholder=""
                       className={submitting ? 'pointer-events-none opacity-60' : undefined}
                     />
                   </div>
