@@ -18,6 +18,7 @@ import { ArrowLeft, X } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
+import { NotesEditor } from '@/components/NotesEditor'
 
 interface EditOrganizationForm {
   name: string
@@ -48,6 +49,7 @@ function EditOrganizationContent() {
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [personError, setPersonError] = useState<string | null>(null)
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+  const [notes, setNotes] = useState<string>('')
 
   const {
     register,
@@ -90,6 +92,7 @@ function EditOrganizationContent() {
           linkedin_url: orgData.linkedin_url || '',
           status: orgData.status,
         })
+        setNotes(orgData.notes || '')
 
         // Fetch organization's person links
         const { data: personLinks, error: linksError } = await supabase
@@ -205,6 +208,7 @@ function EditOrganizationContent() {
           website: data.website || null,
           linkedin_url: data.linkedin_url || null,
           status: data.status,
+          notes: notes || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -408,6 +412,16 @@ function EditOrganizationContent() {
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <NotesEditor
+                      value={notes}
+                      onChange={setNotes}
+                      placeholder="Update account history, partnership details, or follow-up notes."
+                      className={submitting ? 'pointer-events-none opacity-60' : undefined}
+                    />
                   </div>
 
                   {/* Tags Section */}

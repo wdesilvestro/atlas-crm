@@ -18,6 +18,7 @@ import { Organization } from '@/types/organization'
 import { LocationField } from '@/components/LocationField'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
+import { NotesEditor } from '@/components/NotesEditor'
 
 interface CreatePersonForm {
   first_name: string
@@ -62,6 +63,7 @@ function CreatePersonContent() {
     place_id: null,
   })
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+  const [notes, setNotes] = useState<string>('')
 
   const {
     register,
@@ -163,6 +165,7 @@ function CreatePersonContent() {
             country: location.country,
             formatted_address: location.formatted_address,
             place_id: location.place_id,
+            notes: notes || null,
           },
         ])
         .select()
@@ -313,6 +316,16 @@ function CreatePersonContent() {
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <NotesEditor
+                      value={notes}
+                      onChange={setNotes}
+                      placeholder="Add background information, key talking points, or reminders."
+                      className={loading ? 'pointer-events-none opacity-60' : undefined}
+                    />
                   </div>
 
                   <div className="space-y-2">

@@ -13,6 +13,7 @@ import { Organization } from '@/types/organization'
 import { PersonOrganization } from '@/types/person'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Tag } from '@/lib/hooks/use-tags'
+import { NotesViewer } from '@/components/NotesViewer'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   person_first_name: string
@@ -217,6 +218,15 @@ function OrganizationDetailContent() {
                     >
                       {organization.status}
                     </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Notes
+                  </label>
+                  <div className="mt-2 rounded-md border bg-muted/40 p-4">
+                    <NotesViewer value={organization.notes} />
                   </div>
                 </div>
 

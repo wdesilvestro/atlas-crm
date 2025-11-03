@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase'
 import { ArrowLeft } from 'lucide-react'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
+import { NotesEditor } from '@/components/NotesEditor'
 
 interface CreateOrganizationForm {
   name: string
@@ -30,6 +31,7 @@ function CreateOrganizationContent() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+  const [notes, setNotes] = useState<string>('')
   const {
     register,
     handleSubmit,
@@ -61,6 +63,7 @@ function CreateOrganizationContent() {
             linkedin_url: data.linkedin_url || null,
             user_id: user.id,
             status: data.status,
+            notes: notes || null,
           },
         ])
         .select()
@@ -184,6 +187,16 @@ function CreateOrganizationContent() {
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <NotesEditor
+                      value={notes}
+                      onChange={setNotes}
+                      placeholder="Capture account history, partnership details, or follow-up notes."
+                      className={loading ? 'pointer-events-none opacity-60' : undefined}
+                    />
                   </div>
 
                   {/* Tags Section */}

@@ -19,6 +19,7 @@ import { useAuth } from '@/lib/auth-context'
 import { LocationField } from '@/components/LocationField'
 import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
+import { NotesEditor } from '@/components/NotesEditor'
 
 interface EditPersonForm {
   first_name: string
@@ -67,6 +68,7 @@ function EditPersonContent() {
     place_id: null,
   })
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+  const [notes, setNotes] = useState<string>('')
 
   const {
     register,
@@ -119,6 +121,7 @@ function EditPersonContent() {
           formatted_address: personData.formatted_address,
           place_id: personData.place_id,
         })
+        setNotes(personData.notes || '')
 
         // Fetch person's organization links
         const { data: orgLinks, error: linksError } = await supabase
@@ -244,6 +247,7 @@ function EditPersonContent() {
           country: location.country,
           formatted_address: location.formatted_address,
           place_id: location.place_id,
+          notes: notes || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -453,6 +457,16 @@ function EditPersonContent() {
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (Optional)</Label>
+                    <NotesEditor
+                      value={notes}
+                      onChange={setNotes}
+                      placeholder="Update background information, key talking points, or reminders."
+                      className={submitting ? 'pointer-events-none opacity-60' : undefined}
+                    />
                   </div>
 
                   <div className="space-y-2">

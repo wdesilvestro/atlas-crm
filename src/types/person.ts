@@ -46,6 +46,7 @@ export interface Person {
   formatted_address: string | null
   place_id: string | null
   status: 'Active' | 'Inactive'
+  notes: string | null
   created_at: string
   updated_at: string
   tags?: PersonTag[]

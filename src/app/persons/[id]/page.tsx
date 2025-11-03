@@ -15,6 +15,7 @@ import { Tag } from '@/lib/hooks/use-tags'
 import ActionLogForm from '@/components/ActionLogForm'
 import ActionsList from '@/components/ActionsList'
 import ActionStatusBanner from '@/components/ActionStatusBanner'
+import { NotesViewer } from '@/components/NotesViewer'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   organization_name: string
@@ -213,6 +214,15 @@ function PersonDetailContent() {
                     >
                       {person.status}
                     </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Notes
+                  </label>
+                  <div className="mt-2 rounded-md border bg-muted/40 p-4">
+                    <NotesViewer value={person.notes} />
                   </div>
                 </div>
 
