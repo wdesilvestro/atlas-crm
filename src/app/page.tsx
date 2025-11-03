@@ -1,11 +1,57 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { AuthGuard } from '@/components/auth-guard'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { supabase } from '@/lib/supabase'
 
 function HomeContent() {
+  const [personsCount, setPersonsCount] = useState<number>(0)
+  const [organizationsCount, setOrganizationsCount] = useState<number>(0)
+  const [followUpsCount, setFollowUpsCount] = useState<number>(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        // Fetch total persons count
+        const { count: personsTotal, error: personsError } = await supabase
+          .from('person')
+          .select('*', { count: 'exact', head: true })
+
+        if (personsError) throw personsError
+        setPersonsCount(personsTotal || 0)
+
+        // Fetch total organizations count
+        const { count: orgsTotal, error: orgsError } = await supabase
+          .from('organization')
+          .select('*', { count: 'exact', head: true })
+
+        if (orgsError) throw orgsError
+        setOrganizationsCount(orgsTotal || 0)
+
+        // Fetch follow-ups due count (where follow_up_reminder_date is not null and <= today)
+        const today = new Date().toISOString()
+        const { count: followUpsTotal, error: followUpsError } = await supabase
+          .from('person_action')
+          .select('*', { count: 'exact', head: true })
+          .not('follow_up_reminder_date', 'is', null)
+          .lte('follow_up_reminder_date', today)
+
+        if (followUpsError) throw followUpsError
+        setFollowUpsCount(followUpsTotal || 0)
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
@@ -16,44 +62,26 @@ function HomeContent() {
             <div className="flex flex-col gap-2">
               <h1 className="text-3xl font-bold tracking-tight">Welcome to Atlas CRM</h1>
               <p className="text-muted-foreground">
-                Your customer relationship management solution. Use the sidebar to navigate to different sections.
+                The official CRM for Atlas Strategies.
               </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div className="rounded-lg border bg-gradient-to-br from-primary/10 to-card p-6 shadow-sm">
-                <h3 className="font-semibold text-sm text-muted-foreground mb-2">Total Contacts</h3>
-                <p className="text-2xl font-bold">1,234</p>
-                <p className="text-xs text-muted-foreground mt-2">Across all contacts</p>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-2">Total Persons</h3>
+                <p className="text-2xl font-bold">{loading ? '...' : personsCount}</p>
+                <p className="text-xs text-muted-foreground mt-2">In system</p>
               </div>
               <div className="rounded-lg border bg-gradient-to-br from-primary/10 to-card p-6 shadow-sm">
-                <h3 className="font-semibold text-sm text-muted-foreground mb-2">Active Deals</h3>
-                <p className="text-2xl font-bold">45</p>
-                <p className="text-xs text-muted-foreground mt-2">In progress</p>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-2">Total Organizations</h3>
+                <p className="text-2xl font-bold">{loading ? '...' : organizationsCount}</p>
+                <p className="text-xs text-muted-foreground mt-2">In system</p>
               </div>
               <div className="rounded-lg border bg-gradient-to-br from-primary/10 to-card p-6 shadow-sm">
-                <h3 className="font-semibold text-sm text-muted-foreground mb-2">Closed This Month</h3>
-                <p className="text-2xl font-bold">12</p>
-                <p className="text-xs text-muted-foreground mt-2">Successfully completed</p>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-2">Follow-Ups Due</h3>
+                <p className="text-2xl font-bold">{loading ? '...' : followUpsCount}</p>
+                <p className="text-xs text-muted-foreground mt-2">Across all users</p>
               </div>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6 shadow-sm">
-              <h2 className="font-semibold mb-4">Quick Actions</h2>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-primary"></span>
-                  Create a new contact
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-primary"></span>
-                  View all deals
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 rounded-full bg-primary"></span>
-                  Check your pipeline
-                </li>
-              </ul>
             </div>
           </div>
         </div>
