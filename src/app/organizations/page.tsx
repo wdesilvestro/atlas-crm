@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AgGridReact } from 'ag-grid-react'
-import { ColDef, DoesFilterPassParams, themeQuartz } from 'ag-grid-community'
+import { ColDef, DoesFilterPassParams, ValueGetterParams, themeQuartz } from 'ag-grid-community'
 import { AuthGuard } from '@/components/auth-guard'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
@@ -149,7 +149,7 @@ function OrganizationsContent() {
       headerName: 'Relationship Owner',
       flex: 1,
       minWidth: 150,
-      valueGetter: (params: { data: Organization }) => {
+      valueGetter: (params: ValueGetterParams<Organization>) => {
         return params.data?.relationship_owner?.name || '-'
       },
       cellRenderer: (props: { data: Organization }) => {
