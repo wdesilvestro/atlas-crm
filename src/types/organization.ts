@@ -23,6 +23,7 @@ export interface Organization {
   name: string
   website: string | null
   linkedin_url: string | null
+  photo: string | null
   status: 'Active' | 'Inactive'
   notes: string | null
   relationship_owner_id: string | null

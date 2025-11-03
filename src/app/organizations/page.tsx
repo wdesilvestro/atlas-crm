@@ -18,6 +18,7 @@ import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
 import { createRelationshipOwnerFilter, RelationshipOwnerFilterModel } from '@/components/RelationshipOwnerFilterComponent'
 import type { GridReadyEvent, GridApi } from 'ag-grid-community'
+import Photo from '@/components/Photo'
 
 function OrganizationsContent() {
   const router = useRouter()
@@ -83,6 +84,26 @@ function OrganizationsContent() {
   }
 
   const columnDefs: ColDef<Organization>[] = [
+    {
+      field: 'photo',
+      headerName: '',
+      width: 80,
+      cellRenderer: (props: { data: Organization }) => {
+        return (
+          <div className="flex items-center justify-center h-full">
+            <Photo
+              src={props.data?.photo}
+              alt={props.data?.name}
+              variant="horizontal"
+              size="sm"
+              type="organization"
+            />
+          </div>
+        )
+      },
+      sortable: false,
+      filter: false,
+    },
     {
       field: 'name',
       headerName: 'Name',

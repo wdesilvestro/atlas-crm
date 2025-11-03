@@ -46,6 +46,7 @@ export interface Person {
   first_name: string
   last_name: string
   linkedin_url: string | null
+  photo: string | null
   street_address: string | null
   city: string | null
   state_province: string | null

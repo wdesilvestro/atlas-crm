@@ -20,6 +20,7 @@ import { createFollowUpReminderFilter, FollowUpReminderFilterModel } from '@/com
 import { createRelationshipOwnerFilter, RelationshipOwnerFilterModel } from '@/components/RelationshipOwnerFilterComponent'
 import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react'
 import type { GridReadyEvent, GridApi } from 'ag-grid-community'
+import Photo from '@/components/Photo'
 
 function PersonsContent() {
   const router = useRouter()
@@ -85,6 +86,26 @@ function PersonsContent() {
   }
 
   const columnDefs: ColDef<Person>[] = [
+    {
+      field: 'photo',
+      headerName: '',
+      width: 60,
+      cellRenderer: (props: { data: Person }) => {
+        return (
+          <div className="flex items-center justify-center h-full">
+            <Photo
+              src={props.data?.photo}
+              alt={`${props.data?.first_name} ${props.data?.last_name}`}
+              variant="circular"
+              size="sm"
+              type="person"
+            />
+          </div>
+        )
+      },
+      sortable: false,
+      filter: false,
+    },
     {
       field: 'first_name',
       headerName: 'First Name',

@@ -14,6 +14,7 @@ import { PersonOrganization } from '@/types/person'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesViewer } from '@/components/NotesViewer'
+import Photo from '@/components/Photo'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   person_first_name: string
@@ -153,12 +154,23 @@ function OrganizationDetailContent() {
                   Back to Organizations
                 </Button>
               </Link>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {organization.name}
-              </h1>
-              <p className="text-muted-foreground">
-                Organization details and information
-              </p>
+              <div className="flex items-center gap-6">
+                <Photo
+                  src={organization.photo}
+                  alt={organization.name}
+                  variant="horizontal"
+                  size="xl"
+                  type="organization"
+                />
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">
+                    {organization.name}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Organization details and information
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="max-w-2xl">

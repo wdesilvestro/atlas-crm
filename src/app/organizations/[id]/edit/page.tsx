@@ -20,6 +20,7 @@ import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
 import { RelationshipOwner } from '@/types/relationship-owner'
+import PhotoUpload from '@/components/PhotoUpload'
 
 interface EditOrganizationForm {
   name: string
@@ -51,6 +52,7 @@ function EditOrganizationContent() {
   const [personError, setPersonError] = useState<string | null>(null)
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
+  const [photo, setPhoto] = useState<string | null>(null)
   const [relationshipOwners, setRelationshipOwners] = useState<RelationshipOwner[]>([])
   const [selectedRelationshipOwnerId, setSelectedRelationshipOwnerId] = useState<string>('')
 
@@ -96,6 +98,7 @@ function EditOrganizationContent() {
           status: orgData.status,
         })
         setNotes(orgData.notes || '')
+        setPhoto(orgData.photo || null)
         setSelectedRelationshipOwnerId(orgData.relationship_owner_id || '')
 
         // Fetch organization's person links
@@ -223,6 +226,7 @@ function EditOrganizationContent() {
           name: data.name,
           website: data.website || null,
           linkedin_url: data.linkedin_url || null,
+          photo: photo || null,
           status: data.status,
           notes: notes || null,
           relationship_owner_id: selectedRelationshipOwnerId || null,
@@ -417,6 +421,13 @@ function EditOrganizationContent() {
                       disabled={submitting}
                     />
                   </div>
+
+                  <PhotoUpload
+                    value={photo}
+                    onChange={setPhoto}
+                    variant="horizontal"
+                    label="Logo/Banner (Optional)"
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>

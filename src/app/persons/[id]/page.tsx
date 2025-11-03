@@ -16,6 +16,7 @@ import ActionLogForm from '@/components/ActionLogForm'
 import ActionsList from '@/components/ActionsList'
 import ActionStatusBanner from '@/components/ActionStatusBanner'
 import { NotesViewer } from '@/components/NotesViewer'
+import Photo from '@/components/Photo'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   organization_name: string
@@ -156,12 +157,23 @@ function PersonDetailContent() {
                   Back to Persons
                 </Button>
               </Link>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {person.first_name} {person.last_name}
-              </h1>
-              <p className="text-muted-foreground">
-                Person details and information
-              </p>
+              <div className="flex items-center gap-6">
+                <Photo
+                  src={person.photo}
+                  alt={`${person.first_name} ${person.last_name}`}
+                  variant="circular"
+                  size="xl"
+                  type="person"
+                />
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">
+                    {person.first_name} {person.last_name}
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Person details and information
+                  </p>
+                </div>
+              </div>
             </div>
 
             <ActionStatusBanner personId={id} refreshTrigger={actionRefreshTrigger} />

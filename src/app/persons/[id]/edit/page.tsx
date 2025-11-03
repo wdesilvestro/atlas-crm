@@ -21,6 +21,7 @@ import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
 import { RelationshipOwner } from '@/types/relationship-owner'
+import PhotoUpload from '@/components/PhotoUpload'
 
 interface EditPersonForm {
   first_name: string
@@ -72,6 +73,7 @@ function EditPersonContent() {
   })
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
+  const [photo, setPhoto] = useState<string | null>(null)
 
   const {
     register,
@@ -125,6 +127,7 @@ function EditPersonContent() {
           place_id: personData.place_id,
         })
         setNotes(personData.notes || '')
+        setPhoto(personData.photo || null)
         setSelectedRelationshipOwnerId(personData.relationship_owner_id || '')
 
         // Fetch person's organization links
@@ -252,6 +255,7 @@ function EditPersonContent() {
           first_name: data.first_name,
           last_name: data.last_name,
           linkedin_url: data.linkedin_url || null,
+          photo: photo || null,
           status: data.status,
           street_address: location.street_address,
           city: location.city,
@@ -459,6 +463,13 @@ function EditPersonContent() {
                       disabled={submitting}
                     />
                   </div>
+
+                  <PhotoUpload
+                    value={photo}
+                    onChange={setPhoto}
+                    variant="circular"
+                    label="Profile Photo (Optional)"
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>

@@ -20,6 +20,7 @@ import { TagInput } from '@/components/TagInput'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
 import { RelationshipOwner } from '@/types/relationship-owner'
+import PhotoUpload from '@/components/PhotoUpload'
 
 interface CreatePersonForm {
   first_name: string
@@ -67,6 +68,7 @@ function CreatePersonContent() {
   })
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
+  const [photo, setPhoto] = useState<string | null>(null)
 
   const {
     register,
@@ -170,6 +172,7 @@ function CreatePersonContent() {
             first_name: data.first_name,
             last_name: data.last_name,
             linkedin_url: data.linkedin_url || null,
+            photo: photo || null,
             user_id: user.id,
             status: data.status,
             street_address: location.street_address,
@@ -319,6 +322,13 @@ function CreatePersonContent() {
                       disabled={loading}
                     />
                   </div>
+
+                  <PhotoUpload
+                    value={photo}
+                    onChange={setPhoto}
+                    variant="circular"
+                    label="Profile Photo (Optional)"
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>

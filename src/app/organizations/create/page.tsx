@@ -19,6 +19,7 @@ import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
 import { RelationshipOwner } from '@/types/relationship-owner'
 import { useEffect } from 'react'
+import PhotoUpload from '@/components/PhotoUpload'
 
 interface CreateOrganizationForm {
   name: string
@@ -34,6 +35,7 @@ function CreateOrganizationContent() {
   const [loading, setLoading] = useState(false)
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
+  const [photo, setPhoto] = useState<string | null>(null)
   const [relationshipOwners, setRelationshipOwners] = useState<RelationshipOwner[]>([])
   const [selectedRelationshipOwnerId, setSelectedRelationshipOwnerId] = useState<string>('')
   const {
@@ -86,6 +88,7 @@ function CreateOrganizationContent() {
             name: data.name,
             website: data.website || null,
             linkedin_url: data.linkedin_url || null,
+            photo: photo || null,
             user_id: user.id,
             status: data.status,
             notes: notes || null,
@@ -201,6 +204,13 @@ function CreateOrganizationContent() {
                       disabled={loading}
                     />
                   </div>
+
+                  <PhotoUpload
+                    value={photo}
+                    onChange={setPhoto}
+                    variant="horizontal"
+                    label="Logo/Banner (Optional)"
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>
