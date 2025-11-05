@@ -13,7 +13,8 @@ import { Plus, Trash2, Eye, Pencil, ExternalLink } from 'lucide-react'
 import { useOrganizations } from '@/lib/hooks/use-organizations'
 import { Organization } from '@/types/organization'
 import { supabase } from '@/lib/supabase'
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { useAuth } from '@/lib/auth-context'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
 import { createRelationshipOwnerFilter, RelationshipOwnerFilterModel } from '@/components/RelationshipOwnerFilterComponent'
@@ -24,6 +25,7 @@ import { format, startOfWeek, endOfWeek } from 'date-fns'
 
 function OrganizationsContent() {
   const router = useRouter()
+  const { user } = useAuth()
   const { organizations, loading, error, refetch } = useOrganizations()
   const [deleting, setDeleting] = useState<string | null>(null)
   const gridApiRef = useRef<GridApi | null>(null)
@@ -31,6 +33,14 @@ function OrganizationsContent() {
 
   const onGridReady = useCallback((params: GridReadyEvent) => {
     gridApiRef.current = params.api
+  }, [])
+
+  // Memoize date calculations to prevent hydration mismatches
+  const dateFilters = useMemo(() => {
+    const today = format(new Date(), 'yyyy-MM-dd')
+    const weekStart = format(startOfWeek(new Date()), 'yyyy-MM-dd')
+    const weekEnd = format(endOfWeek(new Date()), 'yyyy-MM-dd')
+    return { today, weekStart, weekEnd }
   }, [])
 
   // Apply filter after data is loaded
@@ -86,12 +96,10 @@ function OrganizationsContent() {
   }
 
   // Helper function to calculate todo count based on filter type
-  const getTodoCount = (todos: any[], filterType: ToDoFilterType = 'all'): number => {
+  const getTodoCount = useCallback((todos: any[], filterType: ToDoFilterType = 'all', userId?: string): number => {
     if (!todos || todos.length === 0) return 0
 
-    const today = format(new Date(), 'yyyy-MM-dd')
-    const weekStart = format(startOfWeek(new Date()), 'yyyy-MM-dd')
-    const weekEnd = format(endOfWeek(new Date()), 'yyyy-MM-dd')
+    const { today, weekStart, weekEnd } = dateFilters
 
     switch (filterType) {
       case 'all':
@@ -110,10 +118,22 @@ function OrganizationsContent() {
           const dueDate = todo.due_date.split('T')[0] // Handle both date and timestamp formats
           return dueDate >= weekStart && dueDate <= weekEnd
         }).length
+      case 'outstanding_for_me':
+        return todos.filter((todo: any) => {
+          if (todo.completed) return false
+          return todo.assigned_to === userId
+        }).length
+      case 'due_today_for_me':
+        return todos.filter((todo: any) => {
+          if (!todo.due_date || todo.completed) return false
+          if (todo.assigned_to !== userId) return false
+          const dueDate = todo.due_date.split('T')[0] // Handle both date and timestamp formats
+          return dueDate === today
+        }).length
       default:
         return todos.length
     }
-  }
+  }, [dateFilters])
 
   const columnDefs: ColDef<Organization>[] = [
     {
@@ -317,7 +337,7 @@ function OrganizationsContent() {
       minWidth: 120,
       valueGetter: (params: ValueGetterParams<Organization>) => {
         const todos = params.data?.todos || []
-        return getTodoCount(todos, 'all')
+        return getTodoCount(todos, 'all', user?.id)
       },
       cellRenderer: (props: { data: Organization; api: any }) => {
         const todos = props.data?.todos || []
@@ -327,7 +347,7 @@ function OrganizationsContent() {
         const todoFilter = filterModel?.todos as ToDoFilterModel | null
         const filterType = todoFilter?.filterType || 'all'
 
-        const count = getTodoCount(todos, filterType)
+        const count = getTodoCount(todos, filterType, user?.id)
 
         return (
           <div className="flex items-center h-full">
@@ -346,7 +366,7 @@ function OrganizationsContent() {
               const todos = filterParams.data?.todos || []
 
               // Filter out rows where the count is 0 for the selected filter type
-              const count = getTodoCount(todos, filterType)
+              const count = getTodoCount(todos, filterType, user?.id)
               return count > 0
             },
           }

@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
-export type ToDoFilterType = 'all' | 'outstanding' | 'due_today' | 'due_this_week'
+export type ToDoFilterType = 'all' | 'outstanding' | 'due_today' | 'due_this_week' | 'outstanding_for_me' | 'due_today_for_me'
 
 export interface ToDoFilterModel {
   filterType: ToDoFilterType
@@ -70,6 +70,18 @@ function ToDoFilterComponent({
             <RadioGroupItem value="due_this_week" id="todo-due-this-week" />
             <Label htmlFor="todo-due-this-week" className="text-sm cursor-pointer font-normal">
               To-Do Items Due This Week
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="outstanding_for_me" id="todo-outstanding-for-me" />
+            <Label htmlFor="todo-outstanding-for-me" className="text-sm cursor-pointer font-normal">
+              Outstanding To-Do Items for Me
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="due_today_for_me" id="todo-due-today-for-me" />
+            <Label htmlFor="todo-due-today-for-me" className="text-sm cursor-pointer font-normal">
+              To-Do Items Due Today for Me
             </Label>
           </div>
         </RadioGroup>
