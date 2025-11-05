@@ -12,6 +12,7 @@ import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
 import { RelationshipOwner } from '@/types/relationship-owner'
 import PhotoUpload from '@/components/PhotoUpload'
+import { Sparkles } from 'lucide-react'
 
 interface OrganizationFormData {
   name: string
@@ -36,6 +37,7 @@ export function OrganizationForm({
   const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [autoPopulating, setAutoPopulating] = useState(false)
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [notes, setNotes] = useState<string>('')
   const [photo, setPhoto] = useState<string | null>(null)
@@ -47,6 +49,8 @@ export function OrganizationForm({
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm<OrganizationFormData>({
     defaultValues: {
       name: '',
@@ -55,6 +59,8 @@ export function OrganizationForm({
       status: 'Active',
     },
   })
+
+  const linkedinUrl = watch('linkedin_url')
 
   useEffect(() => {
     const fetchRelationshipOwners = async () => {
@@ -76,6 +82,81 @@ export function OrganizationForm({
 
     fetchRelationshipOwners()
   }, [user])
+
+  const handleAutoPopulate = async () => {
+    if (!linkedinUrl) return
+
+    setAutoPopulating(true)
+    setError(null)
+
+    try {
+      // Call the API route to scrape LinkedIn (server-side to avoid CORS issues)
+      const response = await fetch('/api/linkedin/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ linkedinUrl }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to fetch LinkedIn data')
+      }
+
+      const data = await response.json()
+
+      // Populate form fields with scraped data
+      if (data.name) {
+        setValue('name', data.name)
+      }
+      if (data.website) {
+        setValue('website', data.website)
+      }
+      if (data.description) {
+        // Convert plain text to Lexical editor state format
+        const lexicalState = {
+          root: {
+            children: [
+              {
+                children: [
+                  {
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                    text: data.description,
+                    type: 'text',
+                    version: 1,
+                  },
+                ],
+                direction: 'ltr',
+                format: '',
+                indent: 0,
+                type: 'paragraph',
+                version: 1,
+              },
+            ],
+            direction: 'ltr',
+            format: '',
+            indent: 0,
+            type: 'root',
+            version: 1,
+          },
+        }
+        setNotes(JSON.stringify(lexicalState))
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to fetch LinkedIn data. Please try again.'
+      setError(errorMessage)
+      console.error('Error auto-populating from LinkedIn:', err)
+    } finally {
+      setAutoPopulating(false)
+    }
+  }
 
   const onSubmit = async (data: OrganizationFormData) => {
     setLoading(true)
@@ -189,7 +270,22 @@ export function OrganizationForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="linkedin_url">LinkedIn Profile URL (Optional)</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="linkedin_url">LinkedIn Profile URL (Optional)</Label>
+          {linkedinUrl && linkedinUrl.includes('linkedin.com/company/') && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoPopulate}
+              disabled={loading || autoPopulating}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              {autoPopulating ? 'Fetching...' : 'Auto-populate'}
+            </Button>
+          )}
+        </div>
         <Input
           id="linkedin_url"
           type="url"
@@ -197,6 +293,11 @@ export function OrganizationForm({
           {...register('linkedin_url')}
           disabled={loading}
         />
+        {linkedinUrl && linkedinUrl.includes('linkedin.com/company/') && (
+          <p className="text-xs text-muted-foreground">
+            Click "Auto-populate" to fetch company details from LinkedIn
+          </p>
+        )}
       </div>
 
       <PhotoUpload
