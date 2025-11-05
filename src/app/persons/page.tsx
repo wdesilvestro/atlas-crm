@@ -9,7 +9,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, Eye, Pencil } from 'lucide-react'
+import { Plus, Trash2, Eye, Pencil, Linkedin } from 'lucide-react'
 import { usePersons } from '@/lib/hooks/use-persons'
 import { Person } from '@/types/person'
 import { supabase } from '@/lib/supabase'
@@ -245,25 +245,6 @@ function PersonsContent() {
       },
     },
     {
-      field: 'linkedin_url',
-      headerName: 'LinkedIn',
-      flex: 1,
-      minWidth: 200,
-      cellRenderer: (props: { value: string | null }) => {
-        if (!props.value) return '-'
-        return (
-          <a
-            href={props.value}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline truncate"
-          >
-            View Profile
-          </a>
-        )
-      },
-    },
-    {
       headerName: 'Tags',
       field: 'tags',
       flex: 1,
@@ -382,7 +363,7 @@ function PersonsContent() {
     },
     {
       headerName: 'Actions',
-      width: 150,
+      width: 180,
       cellRenderer: (props: { data: Person }) => {
         const isDeleting = deleting === props.data.id
         return (
@@ -401,6 +382,17 @@ function PersonsContent() {
             >
               <Pencil className="h-4 w-4" />
             </Link>
+            {props.data.linkedin_url && (
+              <a
+                href={props.data.linkedin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`text-[#0077B5] hover:text-[#005885] ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
+                title="View LinkedIn profile"
+              >
+                <Linkedin className="h-4 w-4" />
+              </a>
+            )}
             <button
               onClick={() => handleDeletePerson(props.data.id)}
               disabled={isDeleting}
