@@ -2,7 +2,8 @@
 
 import { useState, useRef, ChangeEvent } from 'react'
 import { Button } from '@/components/ui/button'
-import { Upload, X } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Upload, X, Link } from 'lucide-react'
 
 interface PhotoUploadProps {
   value?: string | null
@@ -11,6 +12,8 @@ interface PhotoUploadProps {
   label?: string
 }
 
+type UploadMode = 'file' | 'url'
+
 export default function PhotoUpload({
   value,
   onChange,
@@ -18,6 +21,8 @@ export default function PhotoUpload({
   label = 'Upload Photo'
 }: PhotoUploadProps) {
   const [preview, setPreview] = useState<string | null>(value || null)
+  const [mode, setMode] = useState<UploadMode>('file')
+  const [urlInput, setUrlInput] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +53,7 @@ export default function PhotoUpload({
   const handleRemove = () => {
     setPreview(null)
     onChange(null)
+    setUrlInput('')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -57,13 +63,63 @@ export default function PhotoUpload({
     fileInputRef.current?.click()
   }
 
+  const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUrlInput(e.target.value)
+  }
+
+  const handleUrlSubmit = () => {
+    if (!urlInput.trim()) {
+      alert('Please enter a valid URL')
+      return
+    }
+
+    // Basic URL validation
+    try {
+      new URL(urlInput)
+      setPreview(urlInput)
+      onChange(urlInput)
+    } catch {
+      alert('Please enter a valid URL')
+    }
+  }
+
+  const handleModeToggle = () => {
+    setMode(mode === 'file' ? 'url' : 'file')
+    // Clear inputs when switching modes
+    setUrlInput('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const containerClass = variant === 'circular'
     ? 'w-32 h-32 rounded-full'
     : 'w-48 h-32 rounded-lg'
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium">{label}</label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleModeToggle}
+          className="text-xs"
+        >
+          {mode === 'file' ? (
+            <>
+              <Link className="w-3 h-3 mr-1" />
+              Use URL
+            </>
+          ) : (
+            <>
+              <Upload className="w-3 h-3 mr-1" />
+              Upload File
+            </>
+          )}
+        </Button>
+      </div>
       <div className="flex items-center gap-4">
         {/* Preview or placeholder */}
         <div
@@ -89,36 +145,79 @@ export default function PhotoUpload({
           )}
         </div>
 
-        {/* Upload button */}
-        <div className="space-y-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClick}
-          >
-            {preview ? 'Change Photo' : 'Upload Photo'}
-          </Button>
-          {preview && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleRemove}
-              className="ml-2"
-            >
-              Remove
-            </Button>
+        {/* Upload button or URL input */}
+        <div className="space-y-2 flex-1">
+          {mode === 'file' ? (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClick}
+                >
+                  {preview ? 'Change Photo' : 'Upload Photo'}
+                </Button>
+                {preview && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemove}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Max size: 5MB. Formats: JPG, PNG, GIF
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <Input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={urlInput}
+                  onChange={handleUrlChange}
+                  className="flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleUrlSubmit()
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleUrlSubmit}
+                >
+                  Apply
+                </Button>
+                {preview && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemove}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Enter a valid image URL (e.g., from LinkedIn, company website)
+              </p>
+            </>
           )}
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Max size: 5MB. Formats: JPG, PNG, GIF
-          </p>
         </div>
       </div>
     </div>
