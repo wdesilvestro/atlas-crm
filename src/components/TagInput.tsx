@@ -59,6 +59,7 @@ export function TagInput({ objectType, selectedTags, onTagsChange }: TagInputPro
             >
               <span>{tag.name}</span>
               <button
+                type="button"
                 onClick={() => handleRemoveTag(tag.id)}
                 className="hover:text-blue-600"
                 aria-label={`Remove ${tag.name} tag`}
@@ -76,6 +77,7 @@ export function TagInput({ objectType, selectedTags, onTagsChange }: TagInputPro
           {availableTagsNotSelected.map((tag) => (
             <button
               key={tag.id}
+              type="button"
               onClick={() => handleAddTag(tag)}
               className="border border-gray-300 hover:border-blue-500 px-3 py-1 rounded-full text-sm hover:bg-gray-50 transition-colors"
             >
@@ -97,6 +99,7 @@ export function TagInput({ objectType, selectedTags, onTagsChange }: TagInputPro
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                e.preventDefault()
                 handleCreateTag()
               } else if (e.key === 'Escape') {
                 setShowCreateForm(false)
@@ -106,10 +109,11 @@ export function TagInput({ objectType, selectedTags, onTagsChange }: TagInputPro
             }}
             autoFocus
           />
-          <Button size="sm" onClick={handleCreateTag} variant="default">
+          <Button type="button" size="sm" onClick={handleCreateTag} variant="default">
             Create
           </Button>
           <Button
+            type="button"
             size="sm"
             onClick={() => {
               setShowCreateForm(false)
@@ -123,6 +127,7 @@ export function TagInput({ objectType, selectedTags, onTagsChange }: TagInputPro
         </div>
       ) : (
         <Button
+          type="button"
           size="sm"
           onClick={() => setShowCreateForm(true)}
           variant="outline"
