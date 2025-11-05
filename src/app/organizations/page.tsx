@@ -400,22 +400,20 @@ function OrganizationsContent() {
         const isDeleting = deleting === props.data.id
         return (
           <div className="flex gap-2 h-full items-center">
-            <button
-              onClick={() => handleViewOrganization(props.data.id)}
-              disabled={isDeleting}
-              className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+            <Link
+              href={`/organizations/${props.data.id}`}
+              className={`text-blue-600 hover:text-blue-800 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
               title="View organization"
             >
               <Eye className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => handleEditOrganization(props.data.id)}
-              disabled={isDeleting}
-              className="text-amber-600 hover:text-amber-800 disabled:opacity-50"
+            </Link>
+            <Link
+              href={`/organizations/${props.data.id}/edit`}
+              className={`text-amber-600 hover:text-amber-800 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
               title="Edit organization"
             >
               <Pencil className="h-4 w-4" />
-            </button>
+            </Link>
             <button
               onClick={() => handleDeleteOrganization(props.data.id)}
               disabled={isDeleting}

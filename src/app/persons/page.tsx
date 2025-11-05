@@ -387,22 +387,20 @@ function PersonsContent() {
         const isDeleting = deleting === props.data.id
         return (
           <div className="flex gap-2 h-full items-center">
-            <button
-              onClick={() => handleViewPerson(props.data.id)}
-              disabled={isDeleting}
-              className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+            <Link
+              href={`/persons/${props.data.id}`}
+              className={`text-blue-600 hover:text-blue-800 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
               title="View person"
             >
               <Eye className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => handleEditPerson(props.data.id)}
-              disabled={isDeleting}
-              className="text-amber-600 hover:text-amber-800 disabled:opacity-50"
+            </Link>
+            <Link
+              href={`/persons/${props.data.id}/edit`}
+              className={`text-amber-600 hover:text-amber-800 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
               title="Edit person"
             >
               <Pencil className="h-4 w-4" />
-            </button>
+            </Link>
             <button
               onClick={() => handleDeletePerson(props.data.id)}
               disabled={isDeleting}
