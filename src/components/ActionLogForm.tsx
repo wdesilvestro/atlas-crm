@@ -38,6 +38,10 @@ const THEIR_ACTIONS: { value: ActionType; label: string }[] = [
   { value: 'email_received', label: 'Received an email' },
 ]
 
+const MEETING_ACTIONS: { value: ActionType; label: string }[] = [
+  { value: 'meeting', label: 'Meeting' },
+]
+
 // Helper function to get current local datetime in format "YYYY-MM-DDTHH:mm"
 const getLocalDateTime = () => {
   const now = new Date()
@@ -66,6 +70,9 @@ export default function ActionLogForm({ personId, onActionCreated, onTodoCreated
   // Email fields
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
+
+  // Meeting fields
+  const [meetingName, setMeetingName] = useState('')
 
   // Follow-up reminder fields
   const [createFollowUp, setCreateFollowUp] = useState(false)
@@ -194,6 +201,11 @@ export default function ActionLogForm({ personId, onActionCreated, onTodoCreated
       return
     }
 
+    if (selectedActionType === 'meeting' && !meetingName.trim()) {
+      toast.error('Meeting name is required')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -219,6 +231,9 @@ export default function ActionLogForm({ personId, onActionCreated, onTodoCreated
         case 'email_sent':
         case 'email_received':
           additionalData = { subject: emailSubject, body: emailBody }
+          break
+        case 'meeting':
+          additionalData = { meeting_name: meetingName }
           break
       }
 
@@ -293,6 +308,7 @@ export default function ActionLogForm({ personId, onActionCreated, onTodoCreated
       setLinkedinMessageReceived('')
       setEmailSubject('')
       setEmailBody('')
+      setMeetingName('')
       setCreateFollowUp(false)
       setFollowUpDays(7)
       if (user) {
@@ -353,6 +369,14 @@ export default function ActionLogForm({ personId, onActionCreated, onTodoCreated
                 <SelectGroup>
                   <SelectLabel>Their Actions</SelectLabel>
                   {THEIR_ACTIONS.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Meetings</SelectLabel>
+                  {MEETING_ACTIONS.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
                     </SelectItem>
@@ -500,6 +524,21 @@ export default function ActionLogForm({ personId, onActionCreated, onTodoCreated
                 />
               </div>
             </>
+          )}
+
+          {selectedActionType === 'meeting' && (
+            <div className="space-y-2">
+              <label htmlFor="meeting-name" className="text-sm font-medium">
+                Meeting Name *
+              </label>
+              <Input
+                id="meeting-name"
+                placeholder="e.g., Quarterly Review, Sales Call, Coffee Chat"
+                value={meetingName}
+                onChange={(e) => setMeetingName(e.target.value)}
+                required
+              />
+            </div>
           )}
 
           {/* Submit Button */}

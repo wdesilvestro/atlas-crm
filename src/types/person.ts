@@ -79,6 +79,7 @@ export type ActionType =
   | 'linkedin_message_received'
   | 'email_sent'
   | 'email_received'
+  | 'meeting'
 
 // Additional data schema for each action type
 export interface LinkedInConnectionRequestSentData {
@@ -107,6 +108,10 @@ export interface EmailReceivedData {
   body: string
 }
 
+export interface MeetingData {
+  meeting_name: string
+}
+
 export type ActionAdditionalData =
   | LinkedInConnectionRequestSentData
   | LinkedInConnectionRequestRetractedData
@@ -115,6 +120,7 @@ export type ActionAdditionalData =
   | LinkedInMessageReceivedData
   | EmailSentData
   | EmailReceivedData
+  | MeetingData
 
 export interface PersonAction {
   id: string

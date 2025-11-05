@@ -22,6 +22,7 @@ const ACTION_TYPE_LABELS: Record<ActionType, string> = {
   linkedin_message_received: 'Received LinkedIn message',
   email_sent: 'Sent an email',
   email_received: 'Received an email',
+  meeting: 'Meeting',
 }
 
 const ACTION_TYPE_COLORS: Record<ActionType, string> = {
@@ -32,6 +33,7 @@ const ACTION_TYPE_COLORS: Record<ActionType, string> = {
   linkedin_message_received: 'bg-red-100 text-red-800',
   email_sent: 'bg-blue-100 text-blue-800',
   email_received: 'bg-red-100 text-red-800',
+  meeting: 'bg-purple-100 text-purple-800',
 }
 
 export default function ActionsList({ personId, refreshTrigger = 0 }: ActionsListProps) {
@@ -99,7 +101,7 @@ export default function ActionsList({ personId, refreshTrigger = 0 }: ActionsLis
     })
   }
 
-  const getAdditionalDataDisplay = (actionType: ActionType, additionalData: any) => {
+  const getAdditionalDataDisplay = (actionType: ActionType, additionalData: any, occurredAt: string) => {
     switch (actionType) {
       case 'linkedin_connection_request_sent':
         return additionalData.message ? <p className="text-sm text-muted-foreground">Message: {additionalData.message}</p> : null
@@ -117,6 +119,18 @@ export default function ActionsList({ personId, refreshTrigger = 0 }: ActionsLis
           <div className="text-sm text-muted-foreground space-y-1">
             <p>Subject: {additionalData.subject}</p>
             <p className="line-clamp-2">Body: {additionalData.body}</p>
+          </div>
+        )
+      case 'meeting':
+        const meetingDate = new Date(occurredAt)
+        const now = new Date()
+        const isScheduled = meetingDate > now
+        return (
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p className="font-medium">{additionalData.meeting_name}</p>
+            {isScheduled && (
+              <Badge className="bg-green-100 text-green-800 font-normal">Scheduled</Badge>
+            )}
           </div>
         )
       default:
@@ -181,7 +195,7 @@ export default function ActionsList({ personId, refreshTrigger = 0 }: ActionsLis
                   </Button>
                 </div>
 
-                {getAdditionalDataDisplay(action.action_type, action.additional_data)}
+                {getAdditionalDataDisplay(action.action_type, action.additional_data, action.occurred_at)}
               </div>
             ))}
           </div>
