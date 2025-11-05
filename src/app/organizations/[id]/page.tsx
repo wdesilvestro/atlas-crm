@@ -15,6 +15,7 @@ import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Tag } from '@/lib/hooks/use-tags'
 import { NotesViewer } from '@/components/NotesViewer'
 import Photo from '@/components/Photo'
+import TodoList from '@/components/TodoList'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   person_first_name: string
@@ -327,6 +328,9 @@ function OrganizationDetailContent() {
                   </Link>
                 </div>
               </div>
+
+              {/* Todo Section */}
+              <TodoList objectType="organization" objectId={id} />
             </div>
           </div>
         </div>

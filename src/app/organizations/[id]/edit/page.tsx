@@ -21,6 +21,7 @@ import { Tag } from '@/lib/hooks/use-tags'
 import { NotesEditor } from '@/components/NotesEditor'
 import { RelationshipOwner } from '@/types/relationship-owner'
 import PhotoUpload from '@/components/PhotoUpload'
+import TodoList from '@/components/TodoList'
 
 interface EditOrganizationForm {
   name: string
@@ -609,6 +610,9 @@ function EditOrganizationContent() {
                   </div>
                 </form>
               </div>
+
+              {/* Todo Section */}
+              <TodoList objectType="organization" objectId={id} />
             </div>
           </div>
         </div>

@@ -24,6 +24,7 @@ import { RelationshipOwner } from '@/types/relationship-owner'
 import PhotoUpload from '@/components/PhotoUpload'
 import { OrganizationForm } from '@/components/OrganizationForm'
 import { Plus } from 'lucide-react'
+import TodoList from '@/components/TodoList'
 
 interface EditPersonForm {
   first_name: string
@@ -753,6 +754,9 @@ function EditPersonContent() {
                   />
                 </div>
               )}
+
+              {/* Todo Section */}
+              <TodoList objectType="person" objectId={id} />
             </div>
           </div>
         </div>

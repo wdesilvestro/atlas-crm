@@ -16,6 +16,7 @@ import ActionLogForm from '@/components/ActionLogForm'
 import ActionsList from '@/components/ActionsList'
 import { NotesViewer } from '@/components/NotesViewer'
 import Photo from '@/components/Photo'
+import TodoList from '@/components/TodoList'
 
 interface PersonOrganizationWithDetails extends PersonOrganization {
   organization_name: string
@@ -347,6 +348,9 @@ function PersonDetailContent() {
                 onActionCreated={() => setActionRefreshTrigger((prev) => prev + 1)}
               />
               <ActionsList personId={id} refreshTrigger={actionRefreshTrigger} />
+
+              {/* Todo Section */}
+              <TodoList objectType="person" objectId={id} />
             </div>
           </div>
         </div>
