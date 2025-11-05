@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth-context'
 import { PersonAction, ActionType } from '@/types/person'
@@ -9,12 +9,20 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import { Calendar, Clock } from 'lucide-react'
 
 interface ActionLogFormProps {
   personId: string
   onActionCreated: (action: PersonAction) => void
+  onTodoCreated?: () => void
+}
+
+interface User {
+  user_id: string
+  email: string
+  display_name: string | null
 }
 
 const MY_ACTIONS: { value: ActionType; label: string }[] = [
@@ -41,7 +49,7 @@ const getLocalDateTime = () => {
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
-export default function ActionLogForm({ personId, onActionCreated }: ActionLogFormProps) {
+export default function ActionLogForm({ personId, onActionCreated, onTodoCreated }: ActionLogFormProps) {
   const { user } = useAuth()
   const [selectedActionType, setSelectedActionType] = useState<ActionType | ''>('')
   const [dateTime, setDateTime] = useState<string>(getLocalDateTime())
@@ -59,7 +67,98 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
 
+  // Follow-up reminder fields
+  const [createFollowUp, setCreateFollowUp] = useState(false)
+  const [followUpDays, setFollowUpDays] = useState<number>(7)
+  const [followUpAssignedTo, setFollowUpAssignedTo] = useState<string>('')
+  const [availableUsers, setAvailableUsers] = useState<User[]>([])
+  const [personName, setPersonName] = useState<string>('')
+
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Fetch users and person name on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Try to fetch all users via RPC
+        const { data: usersData, error: usersError } = await supabase.rpc(
+          'get_all_users_with_display_names'
+        )
+
+        if (usersError) {
+          // RPC function not available, use fallback approach
+          // Fallback: Try to get users from person table (users who own persons)
+          const { data: personUsers, error: personError } = await supabase
+            .from('person')
+            .select('user_id')
+
+          if (personError) {
+            console.error('Error fetching person users:', personError)
+            // Final fallback: just use current user
+            if (user) {
+              setAvailableUsers([{
+                user_id: user.id,
+                email: user.email || '',
+                display_name: user.user_metadata?.display_name || null
+              }])
+            }
+          } else if (personUsers) {
+            // Get unique user IDs
+            const uniqueUserIds = [...new Set(personUsers.map(p => p.user_id))]
+
+            // Fetch display names for these users
+            const { data: displayNames } = await supabase
+              .from('user_display_name')
+              .select('*')
+              .in('user_id', uniqueUserIds)
+
+            // Build user list with current user's info
+            const userList = uniqueUserIds.map(userId => {
+              const displayName = displayNames?.find(d => d.user_id === userId)
+              if (userId === user?.id && user) {
+                return {
+                  user_id: userId,
+                  email: user.email || '',
+                  display_name: displayName?.display_name || user.user_metadata?.display_name || null
+                }
+              }
+              return {
+                user_id: userId,
+                email: '', // We don't have access to other users' emails
+                display_name: displayName?.display_name || userId.substring(0, 8)
+              }
+            })
+
+            setAvailableUsers(userList)
+          }
+        } else if (usersData) {
+          setAvailableUsers(usersData)
+        }
+
+        // Fetch person name for todo title
+        const { data: personData, error: personError } = await supabase
+          .from('person')
+          .select('first_name, last_name')
+          .eq('id', personId)
+          .single()
+
+        if (personError) {
+          console.error('Error fetching person:', personError)
+        } else if (personData) {
+          setPersonName(`${personData.first_name} ${personData.last_name}`)
+        }
+
+        // Set default assigned user to current user
+        if (user) {
+          setFollowUpAssignedTo(user.id)
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+    }
+
+    fetchData()
+  }, [personId, user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -147,7 +246,44 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
         return
       }
 
-      toast.success('Action logged successfully')
+      // Create follow-up todo if requested
+      if (createFollowUp && data) {
+        try {
+          // Calculate due date: action occurred_at + followUpDays
+          const actionDate = new Date(occurredDate)
+          const dueDate = new Date(actionDate)
+          dueDate.setDate(dueDate.getDate() + followUpDays)
+
+          const { error: todoError } = await supabase.from('todos').insert([
+            {
+              user_id: user.id,
+              object_type: 'person',
+              object_id: personId,
+              title: `Follow up with ${personName}`,
+              description: null,
+              assigned_to: followUpAssignedTo,
+              due_date: dueDate.toISOString().split('T')[0], // Date only (YYYY-MM-DD)
+              completed: false,
+            },
+          ])
+
+          if (todoError) {
+            console.error('Error creating follow-up todo:', todoError)
+            toast.error('Action logged, but failed to create follow-up reminder')
+          } else {
+            toast.success('Action logged and follow-up reminder created')
+            // Trigger todo list refresh
+            if (onTodoCreated) {
+              onTodoCreated()
+            }
+          }
+        } catch (todoErr) {
+          console.error('Error creating follow-up todo:', todoErr)
+          toast.error('Action logged, but failed to create follow-up reminder')
+        }
+      } else {
+        toast.success('Action logged successfully')
+      }
 
       // Reset form
       setSelectedActionType('')
@@ -157,6 +293,11 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
       setLinkedinMessageReceived('')
       setEmailSubject('')
       setEmailBody('')
+      setCreateFollowUp(false)
+      setFollowUpDays(7)
+      if (user) {
+        setFollowUpAssignedTo(user.id)
+      }
 
       if (data) {
         onActionCreated(data as PersonAction)
@@ -220,6 +361,68 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
               </SelectContent>
             </Select>
           </div>
+
+          {/* Follow-up Reminder Section - Only for MY_ACTIONS */}
+          {selectedActionType && MY_ACTIONS.some(a => a.value === selectedActionType) && (
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="create-follow-up"
+                  checked={createFollowUp}
+                  onCheckedChange={(checked) => setCreateFollowUp(checked === true)}
+                />
+                <label
+                  htmlFor="create-follow-up"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Create follow-up reminder
+                </label>
+              </div>
+
+              {createFollowUp && (
+                <div className="ml-6 space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="follow-up-days" className="text-sm font-medium">
+                      Follow up in (days) *
+                    </label>
+                    <Input
+                      id="follow-up-days"
+                      type="number"
+                      min="1"
+                      value={followUpDays}
+                      onChange={(e) => setFollowUpDays(Math.max(1, parseInt(e.target.value) || 1))}
+                      placeholder="Number of days"
+                      required={createFollowUp}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Days are calculated from the action date above
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="follow-up-assigned-to" className="text-sm font-medium">
+                      Assign to
+                    </label>
+                    <Select
+                      value={followUpAssignedTo}
+                      onValueChange={setFollowUpAssignedTo}
+                    >
+                      <SelectTrigger id="follow-up-assigned-to">
+                        <SelectValue placeholder="Select a user" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableUsers.map((u) => (
+                          <SelectItem key={u.user_id} value={u.user_id}>
+                            {u.display_name || u.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Conditional Fields */}
           {selectedActionType === 'linkedin_connection_request_sent' && (

@@ -1,11 +1,12 @@
 -- Change due_date column from TIMESTAMP WITH TIME ZONE to DATE
 -- This prevents timezone conversion issues when storing date-only values
 
+-- Drop the view first before altering the column
+DROP VIEW IF EXISTS todos_with_user;
+
+-- Now alter the column type
 ALTER TABLE todos
 ALTER COLUMN due_date TYPE DATE USING due_date::DATE;
-
--- Drop and recreate the view to reflect the column type change
-DROP VIEW IF EXISTS todos_with_user;
 
 CREATE VIEW todos_with_user AS
 SELECT

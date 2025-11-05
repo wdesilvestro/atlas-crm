@@ -18,6 +18,7 @@ import { format } from 'date-fns'
 interface TodoListProps {
   objectType: 'person' | 'organization'
   objectId: string
+  refreshTrigger?: number
 }
 
 // Helper function to get current local date in format "YYYY-MM-DD"
@@ -29,7 +30,7 @@ const getLocalDate = () => {
   return `${year}-${month}-${day}`
 }
 
-export default function TodoList({ objectType, objectId }: TodoListProps) {
+export default function TodoList({ objectType, objectId, refreshTrigger }: TodoListProps) {
   const { user } = useAuth()
   const [todos, setTodos] = useState<Todo[]>([])
   const [availableUsers, setAvailableUsers] = useState<Array<{ id: string; email: string; display_name?: string }>>([])
@@ -53,7 +54,7 @@ export default function TodoList({ objectType, objectId }: TodoListProps) {
       fetchTodos()
       fetchUsers()
     }
-  }, [user, objectType, objectId])
+  }, [user, objectType, objectId, refreshTrigger])
 
   const fetchTodos = async () => {
     try {

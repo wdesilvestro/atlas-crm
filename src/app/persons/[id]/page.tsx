@@ -34,6 +34,7 @@ function PersonDetailContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionRefreshTrigger, setActionRefreshTrigger] = useState(0)
+  const [todoRefreshTrigger, setTodoRefreshTrigger] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -346,11 +347,12 @@ function PersonDetailContent() {
               <ActionLogForm
                 personId={id}
                 onActionCreated={() => setActionRefreshTrigger((prev) => prev + 1)}
+                onTodoCreated={() => setTodoRefreshTrigger((prev) => prev + 1)}
               />
               <ActionsList personId={id} refreshTrigger={actionRefreshTrigger} />
 
               {/* Todo Section */}
-              <TodoList objectType="person" objectId={id} />
+              <TodoList objectType="person" objectId={id} refreshTrigger={todoRefreshTrigger} />
             </div>
           </div>
         </div>
