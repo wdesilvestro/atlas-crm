@@ -461,6 +461,11 @@ export default function ActionLogForm({ personId, onActionCreated, onTodoCreated
                 onChange={(e) => setLinkedinMessage(e.target.value)}
                 rows={3}
               />
+              <div className="flex justify-end">
+                <span className="text-xs text-muted-foreground">
+                  {linkedinMessage.length} characters
+                </span>
+              </div>
             </div>
           )}
 
