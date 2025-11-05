@@ -31,6 +31,7 @@ export interface Organization {
   updated_at: string
   tags?: OrganizationTag[]
   relationship_owner?: RelationshipOwner
+  todos?: any[] // Array of todos associated with this organization
 }
 
 export interface OrganizationWithDetails extends Organization {

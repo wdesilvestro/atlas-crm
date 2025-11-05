@@ -61,6 +61,7 @@ export interface Person {
   updated_at: string
   tags?: PersonTag[]
   relationship_owner?: RelationshipOwner
+  todos?: any[] // Array of todos associated with this person
 }
 
 export interface PersonWithDetails extends Person {

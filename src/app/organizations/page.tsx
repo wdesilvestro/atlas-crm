@@ -17,8 +17,10 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { createTagFilter, TagFilterModel } from '@/components/TagFilterComponent'
 import { createStatusFilter, StatusFilterModel } from '@/components/StatusFilterComponent'
 import { createRelationshipOwnerFilter, RelationshipOwnerFilterModel } from '@/components/RelationshipOwnerFilterComponent'
+import { createToDoFilter, ToDoFilterModel, ToDoFilterType } from '@/components/ToDoFilterComponent'
 import type { GridReadyEvent, GridApi } from 'ag-grid-community'
 import Photo from '@/components/Photo'
+import { format, startOfWeek, endOfWeek } from 'date-fns'
 
 function OrganizationsContent() {
   const router = useRouter()
@@ -80,6 +82,36 @@ function OrganizationsContent() {
       console.error('Error deleting organization:', err)
     } finally {
       setDeleting(null)
+    }
+  }
+
+  // Helper function to calculate todo count based on filter type
+  const getTodoCount = (todos: any[], filterType: ToDoFilterType = 'all'): number => {
+    if (!todos || todos.length === 0) return 0
+
+    const today = format(new Date(), 'yyyy-MM-dd')
+    const weekStart = format(startOfWeek(new Date()), 'yyyy-MM-dd')
+    const weekEnd = format(endOfWeek(new Date()), 'yyyy-MM-dd')
+
+    switch (filterType) {
+      case 'all':
+        return todos.length
+      case 'outstanding':
+        return todos.filter((todo: any) => !todo.completed).length
+      case 'due_today':
+        return todos.filter((todo: any) => {
+          if (!todo.due_date || todo.completed) return false
+          const dueDate = todo.due_date.split('T')[0] // Handle both date and timestamp formats
+          return dueDate === today
+        }).length
+      case 'due_this_week':
+        return todos.filter((todo: any) => {
+          if (!todo.due_date || todo.completed) return false
+          const dueDate = todo.due_date.split('T')[0] // Handle both date and timestamp formats
+          return dueDate >= weekStart && dueDate <= weekEnd
+        }).length
+      default:
+        return todos.length
     }
   }
 
@@ -273,6 +305,49 @@ function OrganizationsContent() {
                 rowTagIds.includes(tagId)
               )
               return result
+            },
+          }
+        },
+      },
+    },
+    {
+      headerName: 'To-Do Items',
+      field: 'todos',
+      flex: 1,
+      minWidth: 120,
+      valueGetter: (params: ValueGetterParams<Organization>) => {
+        const todos = params.data?.todos || []
+        return getTodoCount(todos, 'all')
+      },
+      cellRenderer: (props: { data: Organization; api: any }) => {
+        const todos = props.data?.todos || []
+
+        // Get the current filter model for this column
+        const filterModel = props.api.getFilterModel()
+        const todoFilter = filterModel?.todos as ToDoFilterModel | null
+        const filterType = todoFilter?.filterType || 'all'
+
+        const count = getTodoCount(todos, filterType)
+
+        return (
+          <div className="flex items-center h-full">
+            <span className="text-sm">{count}</span>
+          </div>
+        )
+      },
+      filter: {
+        component: createToDoFilter(),
+        handler: (params: any) => {
+          return {
+            doesFilterPass: (
+              filterParams: DoesFilterPassParams<Organization, any, ToDoFilterModel>
+            ) => {
+              const filterType = filterParams.model?.filterType || 'all'
+              const todos = filterParams.data?.todos || []
+
+              // Filter out rows where the count is 0 for the selected filter type
+              const count = getTodoCount(todos, filterType)
+              return count > 0
             },
           }
         },

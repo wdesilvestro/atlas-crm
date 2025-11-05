@@ -44,10 +44,33 @@ export function useOrganizations() {
           })
         }
 
-        // Add tags to organizations
+        // Fetch todos for each organization
+        const { data: todosData, error: todosError } = await supabase
+          .from('todos')
+          .select('*')
+          .eq('object_type', 'organization')
+          .in('object_id', organizationIds)
+
+        if (todosError) {
+          throw todosError
+        }
+
+        // Create a map of organization_id to todos
+        const todosMap = new Map<string, any[]>()
+        if (todosData) {
+          todosData.forEach((todo: any) => {
+            if (!todosMap.has(todo.object_id)) {
+              todosMap.set(todo.object_id, [])
+            }
+            todosMap.get(todo.object_id)?.push(todo)
+          })
+        }
+
+        // Add tags and todos to organizations
         const organizationsWithTags = data.map((org) => ({
           ...org,
           tags: tagsMap.get(org.id) || [],
+          todos: todosMap.get(org.id) || [],
         }))
 
         setOrganizations(organizationsWithTags)

@@ -44,10 +44,33 @@ export function usePersons() {
           })
         }
 
-        // Add tags to persons
+        // Fetch todos for each person
+        const { data: todosData, error: todosError } = await supabase
+          .from('todos')
+          .select('*')
+          .eq('object_type', 'person')
+          .in('object_id', personIds)
+
+        if (todosError) {
+          throw todosError
+        }
+
+        // Create a map of person_id to todos
+        const todosMap = new Map<string, any[]>()
+        if (todosData) {
+          todosData.forEach((todo: any) => {
+            if (!todosMap.has(todo.object_id)) {
+              todosMap.set(todo.object_id, [])
+            }
+            todosMap.get(todo.object_id)?.push(todo)
+          })
+        }
+
+        // Add tags and todos to persons
         const personsWithTags = data.map((person) => ({
           ...person,
           tags: tagsMap.get(person.id) || [],
+          todos: todosMap.get(person.id) || [],
         }))
 
         setPersons(personsWithTags)
