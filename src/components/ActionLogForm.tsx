@@ -41,17 +41,6 @@ const getLocalDateTime = () => {
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
-// Helper function to check if action is a "my action"
-const isMyAction = (actionType: ActionType | ''): boolean => {
-  const myActionTypes: ActionType[] = [
-    'linkedin_connection_request_sent',
-    'linkedin_connection_request_retracted',
-    'linkedin_message_sent',
-    'email_sent',
-  ]
-  return myActionTypes.includes(actionType as ActionType)
-}
-
 export default function ActionLogForm({ personId, onActionCreated }: ActionLogFormProps) {
   const { user } = useAuth()
   const [selectedActionType, setSelectedActionType] = useState<ActionType | ''>('')
@@ -69,9 +58,6 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
   // Email fields
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
-
-  // Follow-up reminder field
-  const [followUpReminderDays, setFollowUpReminderDays] = useState('7')
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -137,10 +123,7 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
           break
       }
 
-      // Calculate follow-up reminder date if days is provided
-      const reminderDays = followUpReminderDays.trim() ? parseInt(followUpReminderDays) : null
       const occurredDate = new Date(dateTime)
-      const followUpDate = reminderDays ? new Date(occurredDate.getTime() + reminderDays * 24 * 60 * 60 * 1000).toISOString() : null
 
       // Insert the action
       const { data, error } = await supabase
@@ -152,8 +135,6 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
             action_type: selectedActionType,
             occurred_at: occurredDate.toISOString(),
             additional_data: additionalData,
-            follow_up_reminder_days: reminderDays,
-            follow_up_reminder_date: followUpDate,
           },
         ])
         .select()
@@ -176,7 +157,6 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
       setLinkedinMessageReceived('')
       setEmailSubject('')
       setEmailBody('')
-      setFollowUpReminderDays('7')
 
       if (data) {
         onActionCreated(data as PersonAction)
@@ -317,25 +297,6 @@ export default function ActionLogForm({ personId, onActionCreated }: ActionLogFo
                 />
               </div>
             </>
-          )}
-
-          {/* Follow-up Reminder Input - Only for My Actions */}
-          {isMyAction(selectedActionType) && (
-            <div className="space-y-2">
-              <label htmlFor="follow-up-reminder" className="text-sm font-medium">
-                Follow-up Reminder (days)
-              </label>
-              <Input
-                id="follow-up-reminder"
-                type="number"
-                placeholder="7"
-                min="0"
-                value={followUpReminderDays}
-                onChange={(e) => setFollowUpReminderDays(e.target.value)}
-                className="w-full"
-              />
-              <p className="text-xs text-muted-foreground">Set to 0 or leave empty to not set a reminder</p>
-            </div>
           )}
 
           {/* Submit Button */}

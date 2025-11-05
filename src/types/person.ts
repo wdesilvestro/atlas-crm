@@ -61,7 +61,6 @@ export interface Person {
   updated_at: string
   tags?: PersonTag[]
   relationship_owner?: RelationshipOwner
-  follow_up_reminder_status?: 'action_required' | 'awaiting_response' | 'no_follow_up_needed'
 }
 
 export interface PersonWithDetails extends Person {
@@ -125,8 +124,6 @@ export interface PersonAction {
   action_type: ActionType
   occurred_at: string
   additional_data: ActionAdditionalData
-  follow_up_reminder_days: number | null
-  follow_up_reminder_date: string | null
   created_at: string
   updated_at: string
 }

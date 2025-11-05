@@ -14,7 +14,6 @@ import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Tag } from '@/lib/hooks/use-tags'
 import ActionLogForm from '@/components/ActionLogForm'
 import ActionsList from '@/components/ActionsList'
-import ActionStatusBanner from '@/components/ActionStatusBanner'
 import { NotesViewer } from '@/components/NotesViewer'
 import Photo from '@/components/Photo'
 
@@ -175,8 +174,6 @@ function PersonDetailContent() {
                 </div>
               </div>
             </div>
-
-            <ActionStatusBanner personId={id} refreshTrigger={actionRefreshTrigger} />
 
             <div className="space-y-6 max-w-4xl">
               <div className="rounded-lg border bg-card p-6 shadow-sm space-y-6">
