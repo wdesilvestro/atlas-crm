@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase'
 function HomeContent() {
   const [personsCount, setPersonsCount] = useState<number>(0)
   const [organizationsCount, setOrganizationsCount] = useState<number>(0)
-  const [followUpsCount, setFollowUpsCount] = useState<number>(0)
+  const [todosDueTodayCount, setTodosDueTodayCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,16 +32,32 @@ function HomeContent() {
         if (orgsError) throw orgsError
         setOrganizationsCount(orgsTotal || 0)
 
-        // Fetch follow-ups due count (where follow_up_reminder_date is not null and <= today)
-        const today = new Date().toISOString()
-        const { count: followUpsTotal, error: followUpsError } = await supabase
-          .from('person_action')
-          .select('*', { count: 'exact', head: true })
-          .not('follow_up_reminder_date', 'is', null)
-          .lte('follow_up_reminder_date', today)
+        // Fetch todo count due today (incomplete todos with a due date on or before today)
+        const now = new Date()
+        const today = [
+          now.getFullYear(),
+          String(now.getMonth() + 1).padStart(2, '0'),
+          String(now.getDate()).padStart(2, '0'),
+        ].join('-')
+        const {
+          data: todosDueData,
+          count: todosDueTotal,
+          error: todosDueError,
+        } = await supabase
+          .from('todos')
+          .select('id,title,due_date,completed,user_id,assigned_to', { count: 'exact' })
+          .eq('completed', false)
+          .not('due_date', 'is', null)
+          .lte('due_date', today)
 
-        if (followUpsError) throw followUpsError
-        setFollowUpsCount(followUpsTotal || 0)
+        if (todosDueError) throw todosDueError
+
+        console.log('Todos due today query result:', {
+          today,
+          todosDueTotal,
+          todosDueData,
+        })
+        setTodosDueTodayCount(todosDueTotal || 0)
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
@@ -78,8 +94,8 @@ function HomeContent() {
                 <p className="text-xs text-muted-foreground mt-2">In system</p>
               </div>
               <div className="rounded-lg border bg-gradient-to-br from-primary/10 to-card p-6 shadow-sm">
-                <h3 className="font-semibold text-sm text-muted-foreground mb-2">Follow-Ups Due</h3>
-                <p className="text-2xl font-bold">{loading ? '...' : followUpsCount}</p>
+                <h3 className="font-semibold text-sm text-muted-foreground mb-2">To-Do Items Due Today</h3>
+                <p className="text-2xl font-bold">{loading ? '...' : todosDueTodayCount}</p>
                 <p className="text-xs text-muted-foreground mt-2">Across all users</p>
               </div>
             </div>
